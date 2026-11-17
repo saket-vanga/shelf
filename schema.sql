@@ -25,3 +25,9 @@ create policy "Read own books"   on public.books for select using (auth.uid() = 
 create policy "Add own books"    on public.books for insert with check (auth.uid() = user_id);
 create policy "Edit own books"   on public.books for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "Delete own books" on public.books for delete using (auth.uid() = user_id);
+
+-- Added Nov 2026: page counts and the exact cover picked from suggestions.
+-- Safe to run more than once.
+alter table public.books add column if not exists pages integer check (pages between 1 and 20000);
+alter table public.books add column if not exists cover_url text check (cover_url is null or cover_url like 'https://covers.openlibrary.org/%');
+notify pgrst, 'reload schema';

@@ -110,10 +110,12 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
 .hero h2{font-family:var(--serif);font-weight:600;font-size:22px;line-height:1.2;margin:0 0 4px;letter-spacing:-.01em;text-wrap:balance}
 .hero .sub{color:var(--muted);font-size:14px;margin:0}
 .hero .sub button{color:var(--accent);font-weight:600}
-.mini{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);padding-top:14px}
+.mini{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);padding-top:14px}
+.fun{grid-column:1/-1;margin:-6px 0 0;font-size:13px;color:var(--muted);text-align:center;text-wrap:balance}
+.fun:empty{display:none}
 .mini div{font-size:12px;color:var(--muted);letter-spacing:.02em;text-align:center}
 .mini div + div{border-left:1px solid var(--line)}
-.mini b{display:block;font-family:var(--serif);font-size:22px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.mini b{display:block;font-family:var(--serif);font-size:20px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
 
 /* ---------- controls ---------- */
 .controls{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:22px}
@@ -206,6 +208,20 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
 .rate button.on{color:var(--gold)}
 .rate button:active{transform:scale(1.2)}
 .found{font-size:12px;color:var(--muted);margin:6px 0 0;text-align:center}
+.two{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}
+.suggest{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);margin-top:-4px}
+.sg{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:center;width:100%;padding:9px 12px;text-align:left}
+.sg + .sg{border-top:1px solid var(--line)}
+.sg.act{background:var(--surface-2)}
+.sg .th{display:block;width:34px;aspect-ratio:2/3;border-radius:2px 3px 3px 2px;background:var(--c);overflow:hidden;box-shadow:var(--cover-shadow)}
+.sg .th img{display:block;width:100%;height:100%;object-fit:cover}
+.sg .sx{min-width:0}
+.sg b{display:block;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sg small{display:block;color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.suggest .hint{padding:10px 14px;font-size:13px;color:var(--muted)}
+.bm{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-height:12px}
+.pg{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1}
+.row .pg{display:block;margin-top:4px;text-align:right}
 
 /* account */
 .acct{display:grid;gap:4px;justify-items:center;text-align:center;padding:6px 0 4px}
@@ -224,7 +240,7 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
 /* ---------- hover ---------- */
 @media (hover:hover){
   .book:hover .cover{transform:translateY(-4px) rotate(-.6deg);box-shadow:0 14px 30px rgba(0,0,0,.22)}
-  .row:hover{background:var(--surface-2)}
+  .row:hover,.sg:hover{background:var(--surface-2)}
   .btn:hover{filter:brightness(1.06)}
 }
 
@@ -242,7 +258,8 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
   .fab{display:none}
   .hero{grid-template-columns:auto 1fr auto;padding:24px 28px;gap:28px}
   .hero h2{font-size:28px}
-  .mini{grid-column:auto;border-top:0;padding:0;gap:0;min-width:320px}
+  .mini{grid-column:auto;border-top:0;padding:0;gap:0;min-width:440px}
+  .fun{text-align:left;margin:-12px 0 0}
   .mini div{padding:4px 18px}
   .mini b{font-size:28px}
   .book .bt{font-size:15px}
@@ -316,8 +333,10 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
       <div class="mini">
         <div><b id="sMonth">0</b>This month</div>
         <div><b id="sAvg">–</b>Avg rating</div>
-        <div><b id="sTotal">0</b>All time</div>
+        <div><b id="sTotal">0</b>Books</div>
+        <div><b id="sPages">–</b>Pages read</div>
       </div>
+      <p class="fun" id="fun"></p>
     </section>
 
     <div class="controls">
@@ -356,11 +375,15 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
     <div class="form-top">
       <div><div class="cover" id="fCover"></div><p class="found" id="fFound"></p></div>
       <div class="fields">
-        <div><label class="lbl" for="fTitle">Title</label><input class="field" id="fTitle" autocapitalize="words" autocomplete="off"></div>
+        <div><label class="lbl" for="fTitle">Title</label><input class="field" id="fTitle" autocapitalize="words" autocomplete="off" placeholder="Start typing a title" role="combobox" aria-autocomplete="list" aria-controls="suggest" aria-expanded="false"></div>
         <div><label class="lbl" for="fAuthor">Author</label><input class="field" id="fAuthor" autocapitalize="words" autocomplete="off"></div>
       </div>
     </div>
-    <div><label class="lbl" for="fDate">Finished on</label><input class="field" id="fDate" type="date"></div>
+    <div class="suggest hidden" id="suggest" role="listbox" aria-label="Book suggestions"></div>
+    <div class="two">
+      <div><label class="lbl" for="fDate">Finished on</label><input class="field" id="fDate" type="date"></div>
+      <div><label class="lbl" for="fPages">Pages</label><input class="field" id="fPages" type="number" inputmode="numeric" min="1" max="20000" placeholder="–"></div>
+    </div>
     <div><span class="lbl">Your rating</span><div class="rate" id="fStars"></div></div>
     <div><label class="lbl" for="fNotes">Notes</label><textarea class="field" id="fNotes" placeholder="What stayed with you?"></textarea></div>
     <p class="err" id="sheetErr" role="alert"></p>
@@ -404,38 +427,49 @@ const sb = configured && window.supabase ? window.supabase.createClient(cfg.SUPA
 const PALETTE = ['#1f5f4f','#7a3b2e','#2d3e6b','#7a5a22','#4a2f5c','#2f5a6b','#55622a','#6b2f45','#3d4a3f','#8a4b1f'];
 const hash = s => [...s].reduce((a,c) => (a*31 + c.charCodeAt(0)) >>> 0, 7);
 const coverKey = (t, a) => (t + '|' + (a || '')).toLowerCase().trim();
-const coverCache = ls.get('shelf.covers', {});
+const meta = ls.get('shelf.meta', {});   // "title|author" -> { cover, pages } from Open Library
 const pending = new Set(); const queue = []; let active = 0;
+const OL = 'https://openlibrary.org/search.json?';
+const coverFromId = (id, size = 'M') => id ? `https://covers.openlibrary.org/b/id/${id}-${size}.jpg` : '';
+const coverOf = b => b.cover_url || meta[coverKey(b.title, b.author)]?.cover || '';
+const pagesOf = b => b.pages || meta[coverKey(b.title, b.author)]?.pages || null;
+const fmtNum = n => Number(n).toLocaleString();
+const pgLabel = (n, short) => n ? (short ? fmtNum(n) + 'p' : fmtNum(n) + ' pages') : '';
+const pgSpan = (b, short) => `<span class="pg" data-pk="${esc(coverKey(b.title, b.author))}"${short ? ' data-short="1"' : ''}>${pgLabel(pagesOf(b), short)}</span>`;
 
-function coverHTML(title, author, fs){
+function coverHTML(title, author, fs, url){
   const key = coverKey(title, author);
-  const url = coverCache[key];
+  url = url || meta[key]?.cover;
   return `<div class="cover" data-ck="${esc(key)}" style="--c:${PALETTE[hash(key) % PALETTE.length]}${fs ? `;--fs:${fs}px` : ''}">
     <div class="gen"><div class="ct">${esc(title || 'Untitled')}</div><div><div class="rule"></div><div class="ca">${esc(author || '')}</div></div></div>
     ${url ? `<img src="${esc(url)}" alt="" loading="lazy" onload="this.classList.add('ok')" onerror="this.remove()">` : ''}
   </div>`;
 }
-function wantCover(title, author){
-  const key = coverKey(title, author);
-  if (!title || key in coverCache || pending.has(key)) return;
-  pending.add(key); queue.push([key, title, author]); pump();
+function wantMeta(b){
+  const key = coverKey(b.title, b.author);
+  if (!b.title || (b.cover_url && b.pages) || key in meta || pending.has(key)) return;
+  pending.add(key); queue.push([key, b.title, b.author]); pump();
 }
-async function pump(){
+function pump(){
   while (active < 3 && queue.length){
     const [key, title, author] = queue.shift(); active++;
-    lookupCover(title, author).then(url => {
-      coverCache[key] = url; ls.set('shelf.covers', coverCache);
-      if (url) document.querySelectorAll(`[data-ck="${CSS.escape(key)}"]`).forEach(el => addImg(el, url));
+    lookupMeta(title, author).then(m => {
+      meta[key] = m; ls.set('shelf.meta', meta);
+      if (m.cover) document.querySelectorAll(`.cover[data-ck="${CSS.escape(key)}"]`).forEach(el => addImg(el, m.cover));
+      if (m.pages) {
+        document.querySelectorAll(`[data-pk="${CSS.escape(key)}"]`).forEach(el => { if (!el.textContent) el.textContent = pgLabel(m.pages, el.dataset.short); });
+        renderHero();
+      }
     }).catch(() => {}).finally(() => { pending.delete(key); active--; pump(); });
   }
 }
-async function lookupCover(title, author){
-  const p = new URLSearchParams({ title, limit: '1', fields: 'cover_i' });
+async function lookupMeta(title, author){
+  const p = new URLSearchParams({ title, limit: '1', fields: 'cover_i,number_of_pages_median' });
   if (author) p.set('author', author);
-  const r = await fetch('https://openlibrary.org/search.json?' + p);
+  const r = await fetch(OL + p);
   if (!r.ok) throw new Error('lookup failed');
-  const id = (await r.json()).docs?.[0]?.cover_i;
-  return id ? `https://covers.openlibrary.org/b/id/${id}-M.jpg` : '';
+  const d = (await r.json()).docs?.[0] || {};
+  return { cover: coverFromId(d.cover_i), pages: d.number_of_pages_median || null };
 }
 function addImg(el, url){
   if (el.querySelector('img')) return;
@@ -552,21 +586,39 @@ function renderHero(){
   $('sMonth').textContent = books.filter(b => (b.finished_on||'').startsWith(month)).length;
   $('sAvg').textContent = rated.length ? (rated.reduce((s,b)=>s+b.rating,0)/rated.length).toFixed(1) : '–';
   $('sTotal').textContent = books.length;
+  const counted = books.filter(b => pagesOf(b));
+  const pages = counted.reduce((s,b) => s + pagesOf(b), 0);
+  $('sPages').textContent = pages ? fmtNum(pages) : '–';
+  $('fun').textContent = funFact(pages, books.length - counted.length);
+}
+
+// Just for fun: how tall would every page you've read stand? (~0.05 mm per page, ~275 words per page)
+const STACK = [[0,'a matchbox'],[5,'a deck of cards'],[10,'a coffee mug'],[25,'a house cat'],[60,'a fire hydrant'],[110,'a five-year-old'],[185,'a tall adult'],[305,'a basketball hoop'],[550,'a giraffe'],[1000,'a two-story house']];
+function funFact(pages, missing){
+  if (!pages) return '';
+  const cm = pages * 0.005;
+  const h = cm < 100 ? `${cm < 10 ? cm.toFixed(1) : Math.round(cm)} cm` : `${(cm / 100).toFixed(1)} m`;
+  const than = [...STACK].reverse().find(([min]) => cm >= min)[1];
+  const words = pages * 275;
+  const w = words >= 1e6 ? `${(words / 1e6).toFixed(1)} million` : fmtNum(Math.round(words / 1000) * 1000);
+  return `That's roughly ${w} words. Stacked up, those pages would stand ${h} tall, taller than ${than}.` +
+    (missing ? ` (${missing} book${missing > 1 ? 's' : ''} without a page count.)` : '');
 }
 
 function bookCard(b, i){
-  wantCover(b.title, b.author);
+  wantMeta(b);
   return `<button class="book" data-id="${b.id}" style="animation-delay:${Math.min(i,12)*25}ms">
-    ${coverHTML(b.title, b.author)}
-    <div class="bt">${esc(b.title)}</div><div class="ba">${esc(b.author || 'Unknown author')}</div>${starsHTML(b.rating)}
+    ${coverHTML(b.title, b.author, 0, coverOf(b))}
+    <div class="bt">${esc(b.title)}</div><div class="ba">${esc(b.author || 'Unknown author')}</div>
+    <div class="bm">${starsHTML(b.rating)}${pgSpan(b, true)}</div>
   </button>`;
 }
 function bookRow(b){
-  wantCover(b.title, b.author);
+  wantMeta(b);
   return `<button class="row" data-id="${b.id}">
-    ${coverHTML(b.title, b.author)}
+    ${coverHTML(b.title, b.author, 0, coverOf(b))}
     <div class="mid"><div class="rt">${esc(b.title)}</div><div class="ra">${esc(b.author || 'Unknown author')}</div>${starsHTML(b.rating)}</div>
-    <span class="rd">${b.finished_on ? fmtDate(b.finished_on) : ''}</span>
+    <span class="rd">${b.finished_on ? fmtDate(b.finished_on) : ''}${pgSpan(b)}</span>
   </button>`;
 }
 
@@ -616,36 +668,95 @@ function openDetail(id){
   const b = books.find(x => x.id === id); if (!b) return;
   current = b;
   $('detail').innerHTML = `
-    ${coverHTML(b.title, b.author, 20)}
+    ${coverHTML(b.title, b.author, 20, coverOf(b))}
     <div><h2>${esc(b.title)}</h2><div class="by">${b.author ? 'by ' + esc(b.author) : 'Unknown author'}</div></div>
     ${b.rating ? starsHTML(b.rating) : '<span class="chip">Not rated</span>'}
-    <div class="facts">${b.finished_on ? `<span class="chip">Finished ${fmtDate(b.finished_on, { month:'long', day:'numeric', year:'numeric' })}</span>` : ''}</div>
+    <div class="facts">${b.finished_on ? `<span class="chip">Finished ${fmtDate(b.finished_on, { month:'long', day:'numeric', year:'numeric' })}</span>` : ''}${pagesOf(b) ? `<span class="chip">${pgLabel(pagesOf(b))}</span>` : ''}</div>
     <div class="notes ${b.notes ? '' : 'none'}">${b.notes ? esc(b.notes) : 'No notes yet. Tap Edit to add some.'}</div>`;
   openSheet('detailSheet');
 }
 $('dEdit').onclick = () => openForm(current?.id);
 
 /* form */
-let editing = null, rating = 0, busy = false, lookupTimer = null;
+let editing = null, rating = 0, busy = false, lookupTimer = null, noMetaCols = false;
 $('fStars').innerHTML = [1,2,3,4,5].map(n => `<button type="button" data-n="${n}" aria-label="${n} star${n>1?'s':''}">★</button>`).join('');
 $('fStars').onclick = e => { const n = +e.target.dataset.n; if (n) { rating = rating === n ? 0 : n; paintStars(); } };
 const paintStars = () => [...$('fStars').children].forEach((b,i) => b.classList.toggle('on', i < rating));
 const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
 
+let chosenCover = null, pagesTouched = false;
 function previewCover(){
   const t = $('fTitle').value.trim(), a = $('fAuthor').value.trim();
-  $('fCover').outerHTML = coverHTML(t || 'New book', a, 12).replace('class="cover"', 'class="cover" id="fCover"');
   const key = coverKey(t, a);
-  $('fFound').textContent = t && coverCache[key] ? 'Cover found' : '';
+  const url = chosenCover || (t ? meta[key]?.cover : '') || '';
+  $('fCover').outerHTML = coverHTML(t || 'New book', a, 12, url).replace('class="cover"', 'class="cover" id="fCover"');
+  $('fFound').textContent = url ? 'Cover found' : '';
+  if (!pagesTouched && t && meta[key]) $('fPages').value = meta[key].pages || '';
   clearTimeout(lookupTimer);
-  if (t && !(key in coverCache)) lookupTimer = setTimeout(async () => {
+  if (t && !chosenCover && !(key in meta)) lookupTimer = setTimeout(async () => {
     $('fFound').textContent = 'Looking for cover…';
-    try { coverCache[key] = await lookupCover(t, a); ls.set('shelf.covers', coverCache); } catch { coverCache[key] = undefined; }
+    try { meta[key] = await lookupMeta(t, a); ls.set('shelf.meta', meta); } catch {}
     if (coverKey($('fTitle').value.trim(), $('fAuthor').value.trim()) === key) previewCover();
-    if (!coverCache[key]) $('fFound').textContent = '';
   }, 650);
 }
-$('fTitle').oninput = $('fAuthor').oninput = previewCover;
+$('fTitle').oninput = () => { chosenCover = null; previewCover(); querySuggest(); };
+$('fAuthor').oninput = () => { chosenCover = null; previewCover(); };
+$('fPages').oninput = () => { pagesTouched = true; };
+
+/* title suggestions from Open Library */
+let suggestTimer = null, suggestCtl = null, suggestions = [], sIdx = -1;
+function querySuggest(){
+  clearTimeout(suggestTimer); suggestCtl?.abort();
+  const q = $('fTitle').value.trim();
+  if (q.length < 2) return hideSuggest();
+  suggestTimer = setTimeout(async () => {
+    suggestCtl = new AbortController();
+    if ($('suggest').classList.contains('hidden')) { $('suggest').innerHTML = '<div class="hint">Searching…</div>'; showSuggest(); }
+    try {
+      const p = new URLSearchParams({ q, limit: '6', fields: 'title,author_name,cover_i,number_of_pages_median,first_publish_year' });
+      const r = await fetch(OL + p, { signal: suggestCtl.signal });
+      const docs = (await r.json()).docs || [];
+      if ($('fTitle').value.trim() !== q || document.activeElement !== $('fTitle')) return;
+      suggestions = docs.map(d => ({ title: d.title, author: d.author_name?.[0] || '', year: d.first_publish_year, pages: d.number_of_pages_median || null, cover: coverFromId(d.cover_i), thumb: coverFromId(d.cover_i, 'S') }));
+      renderSuggest();
+    } catch (e) { if (e.name !== 'AbortError') hideSuggest(); }
+  }, 280);
+}
+function renderSuggest(){
+  sIdx = -1;
+  if (!suggestions.length) { $('suggest').innerHTML = '<div class="hint">No matches. You can still type it in yourself.</div>'; return showSuggest(); }
+  $('suggest').innerHTML = suggestions.map((s, i) => `<button type="button" class="sg" role="option" id="sg${i}" data-i="${i}">
+      <span class="th" style="--c:${PALETTE[hash(coverKey(s.title, s.author)) % PALETTE.length]}">${s.thumb ? `<img src="${esc(s.thumb)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</span>
+      <span class="sx"><b>${esc(s.title)}</b><small>${esc([s.author, s.year, pgLabel(s.pages)].filter(Boolean).join(' · '))}</small></span>
+    </button>`).join('');
+  showSuggest();
+}
+function showSuggest(){ show('suggest', true); $('fTitle').setAttribute('aria-expanded', 'true'); }
+function hideSuggest(){ show('suggest', false); suggestions = []; sIdx = -1; $('fTitle').setAttribute('aria-expanded', 'false'); $('fTitle').removeAttribute('aria-activedescendant'); }
+function pickSuggest(i){
+  const s = suggestions[i]; if (!s) return;
+  clearTimeout(suggestTimer); suggestCtl?.abort();
+  $('fTitle').value = s.title; $('fAuthor').value = s.author;
+  chosenCover = s.cover || null;
+  if (s.pages) { $('fPages').value = s.pages; pagesTouched = true; }
+  meta[coverKey(s.title, s.author)] = { cover: s.cover, pages: s.pages }; ls.set('shelf.meta', meta);
+  hideSuggest(); previewCover();
+  $('fTitle').blur();
+}
+$('suggest').addEventListener('pointerdown', e => e.preventDefault());   // keep focus in the title field while tapping
+$('suggest').onclick = e => { const b = e.target.closest('.sg'); if (b) pickSuggest(+b.dataset.i); };
+$('fTitle').onkeydown = e => {
+  if ($('suggest').classList.contains('hidden') || !suggestions.length) return;
+  const items = [...$('suggest').querySelectorAll('.sg')];
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    sIdx = (sIdx + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+    items.forEach((el, i) => el.classList.toggle('act', i === sIdx));
+    $('fTitle').setAttribute('aria-activedescendant', 'sg' + sIdx);
+  } else if (e.key === 'Enter' && sIdx >= 0) { e.preventDefault(); pickSuggest(sIdx); }
+  else if (e.key === 'Escape') { e.stopPropagation(); hideSuggest(); }
+};
+$('fTitle').onblur = () => setTimeout(hideSuggest, 120);
 
 function openForm(id){
   const b = id ? books.find(x => x.id === id) : null;
@@ -653,6 +764,8 @@ function openForm(id){
   $('formTitle').textContent = b ? 'Edit book' : 'Add book';
   $('fTitle').value = b?.title || ''; $('fAuthor').value = b?.author || '';
   $('fDate').value = b?.finished_on || today(); $('fNotes').value = b?.notes || '';
+  $('fPages').value = b ? (pagesOf(b) || '') : ''; pagesTouched = !!b?.pages;
+  chosenCover = b?.cover_url || null; hideSuggest();
   rating = b?.rating || 0; paintStars();
   show('del', !!b); $('del').classList.remove('confirm'); $('del').textContent = 'Delete book';
   $('sheetErr').textContent = '';
@@ -666,13 +779,23 @@ $('save').onclick = async () => {
   if (busy) return;
   const title = $('fTitle').value.trim();
   if (!title) { $('sheetErr').textContent = 'Add a title to save this book.'; $('fTitle').focus(); return; }
-  const row = { title, author: $('fAuthor').value.trim(), finished_on: $('fDate').value || null, rating: rating || null, notes: $('fNotes').value.trim() };
+  const author = $('fAuthor').value.trim();
+  const pages = parseInt($('fPages').value, 10);
+  const row = { title, author, finished_on: $('fDate').value || null, rating: rating || null, notes: $('fNotes').value.trim(),
+                pages: pages > 0 ? Math.min(pages, 20000) : null, cover_url: chosenCover || meta[coverKey(title, author)]?.cover || null };
   busy = true; $('save').textContent = 'Saving…';
-  const { data, error } = editing
-    ? await sb.from('books').update(row).eq('id', editing).select().single()
-    : await sb.from('books').insert(row).select().single();
+  const write = r => editing ? sb.from('books').update(r).eq('id', editing).select().single() : sb.from('books').insert(r).select().single();
+  if (noMetaCols) { delete row.pages; delete row.cover_url; }
+  let { data, error } = await write(row);
+  if (error && /pages|cover_url/.test(error.message)) {
+    // database hasn't been updated with the new columns yet: save the rest, keep pages/cover on this device
+    noMetaCols = true; delete row.pages; delete row.cover_url;
+    ({ data, error } = await write(row));
+    if (!error) setTimeout(() => toast('Saved. Run the database update to sync page counts.'), 2300);
+  }
   busy = false; $('save').textContent = 'Save';
   if (error) { $('sheetErr').textContent = "Couldn't save: " + error.message; return; }
+  if (pages > 0 && !data.pages) { meta[coverKey(title, author)] = { ...(meta[coverKey(title, author)] || {}), pages: Math.min(pages, 20000) }; ls.set('shelf.meta', meta); }
   books = editing ? books.map(b => b.id === editing ? data : b) : [data, ...books];
   const wasEdit = !!editing;
   render();
