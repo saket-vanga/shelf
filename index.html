@@ -7,257 +7,456 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Shelf">
-<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f4f3ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11110f" media="(prefers-color-scheme: dark)">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon.svg">
 <link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
 <title>Shelf</title>
 <style>
+/* Layout: a personal library. Serif for anything that names a book, sans for the interface.
+   Covers carry the color; the chrome stays quiet. */
 :root{
-  --bg:#f2f2f7; --card:#ffffff; --text:#000; --muted:#8e8e93; --sep:#e5e5ea;
-  --accent:#c2410c; --accent-soft:#fdeee6; --danger:#ff3b30; --field:#f2f2f7;
-  --star:#ff9f0a;
+  --bg:#f4f3ef; --surface:#ffffff; --surface-2:#ebe9e3; --ink:#1c1b18; --muted:#77746c; --line:#e2e0d9;
+  --accent:#1f5f4f; --accent-ink:#ffffff; --accent-soft:#dcebe5; --gold:#d99a1e; --danger:#c8352f;
+  --shadow:0 1px 2px rgba(28,27,24,.06),0 6px 20px rgba(28,27,24,.06);
+  --cover-shadow:0 1px 1px rgba(0,0,0,.08),0 6px 14px rgba(28,27,24,.16);
+  --serif:"Fraunces",Georgia,"Times New Roman",serif;
+  --sans:"Inter",-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;
+  --r:16px;
 }
 @media (prefers-color-scheme: dark){
   :root{
-    --bg:#000; --card:#1c1c1e; --text:#fff; --muted:#8e8e93; --sep:#38383a;
-    --accent:#ff8a4c; --accent-soft:#3a2216; --field:#2c2c2e;
+    --bg:#11110f; --surface:#1b1b18; --surface-2:#262622; --ink:#f2f0ea; --muted:#9a978e; --line:#2f2e2a;
+    --accent:#6fcfae; --accent-ink:#0b2a22; --accent-soft:#18332b; --gold:#f0b941; --danger:#ff6b61;
+    --shadow:0 1px 2px rgba(0,0,0,.4); --cover-shadow:0 2px 10px rgba(0,0,0,.5);
+    color-scheme:dark;
   }
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%}
+html,body{margin:0;min-height:100%}
 body{
-  background:var(--bg);color:var(--text);
-  font:17px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
-  -webkit-font-smoothing:antialiased;
-  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background:var(--bg);color:var(--ink);font:16px/1.45 var(--sans);-webkit-font-smoothing:antialiased;
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);
 }
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
-input,textarea{font:inherit;color:var(--text)}
+input,textarea,select{font:inherit;color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
 .hidden{display:none!important}
-.wrap{max-width:560px;margin:0 auto;padding:0 16px}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right))}
+.serif{font-family:var(--serif)}
+svg.i{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-/* ---------- Login ---------- */
-#auth{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding-bottom:40px}
-.logo{width:76px;height:76px;border-radius:18px;background:var(--accent);margin:0 auto 18px;display:grid;place-items:center;box-shadow:0 8px 24px rgba(194,65,12,.3)}
-.logo svg{width:44px;height:44px}
-#auth h1{text-align:center;font-size:34px;font-weight:700;margin:0 0 4px;letter-spacing:-.5px}
-#auth .sub{text-align:center;color:var(--muted);margin:0 0 28px}
-.group{background:var(--card);border-radius:12px;overflow:hidden;margin-bottom:14px}
-.group input,.group textarea{display:block;width:100%;border:0;background:transparent;padding:14px 16px;outline:none}
-.group > * + *:not(.hidden){border-top:1px solid var(--sep)}
-.btn{display:block;width:100%;padding:15px;border-radius:12px;background:var(--accent);color:#fff;font-weight:600;text-align:center}
-.btn:active{opacity:.75}
-.link{display:block;margin:18px auto 0;color:var(--accent);font-size:15px}
-.err{color:var(--danger);font-size:14px;text-align:center;min-height:20px;margin:0 0 10px}
-.note{color:var(--muted);font-size:12px;text-align:center;margin-top:28px}
+/* ---------- buttons & fields ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 18px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:600;transition:transform .12s,opacity .12s}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.55}
+.btn.block{display:flex;width:100%}
+.btn.ghost{background:var(--surface-2);color:var(--ink)}
+.btn.danger{background:transparent;color:var(--danger)}
+.btn.danger.confirm{background:var(--danger);color:#fff}
+.field{display:block;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 14px;outline:none;transition:border-color .15s,box-shadow .15s}
+.field:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.lbl{display:block;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 6px 2px}
+.err{color:var(--danger);font-size:14px;min-height:20px;margin:8px 0}
+textarea.field{resize:none;min-height:120px;line-height:1.5}
 
-/* ---------- Main ---------- */
-.nav{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px)}
-.navbar{display:flex;justify-content:space-between;align-items:center;height:44px}
-.navbar button{color:var(--accent);font-size:17px}
-.big{font-size:34px;font-weight:700;letter-spacing:-.5px;margin:2px 0 10px}
-.search{display:flex;align-items:center;gap:6px;background:var(--field);border-radius:10px;padding:8px 10px;margin-bottom:10px}
-.search input{border:0;background:transparent;outline:none;flex:1;font-size:17px}
-.search svg{flex:none;opacity:.5}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 22px}
-.stat{background:var(--card);border-radius:12px;padding:12px}
-.stat b{display:block;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}
-.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
-.sectionhead{font-size:13px;color:var(--muted);text-transform:uppercase;margin:0 16px 6px;letter-spacing:.3px}
-.list{background:var(--card);border-radius:12px;overflow:hidden;margin-bottom:26px}
-.row{display:flex;gap:12px;padding:12px 16px;align-items:center;width:100%;text-align:left}
-.row + .row{border-top:.5px solid var(--sep)}
-.row:active{background:var(--field)}
-.cover{flex:none;width:42px;height:58px;border-radius:4px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:18px;box-shadow:inset -3px 0 0 rgba(0,0,0,.15)}
-.meta{flex:1;min-width:0}
-.meta .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.meta .a{color:var(--muted);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.meta .s{font-size:13px;color:var(--star);letter-spacing:1px}
-.date{color:var(--muted);font-size:13px;flex:none}
-.empty{text-align:center;color:var(--muted);padding:60px 20px}
-.empty b{display:block;color:var(--text);font-size:20px;margin-bottom:6px}
-.fab{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:calc(24px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;background:var(--accent);color:#fff;font-size:32px;line-height:1;display:grid;place-items:center;box-shadow:0 6px 20px rgba(0,0,0,.25)}
-.fab:active{transform:scale(.94)}
+/* ---------- splash ---------- */
+#splash{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:50}
+.mark{width:56px;height:56px;border-radius:14px;background:var(--accent);display:grid;place-items:center;color:var(--accent-ink)}
+.mark svg{width:30px;height:30px;fill:currentColor}
+#splash .mark{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.55;transform:scale(.94)}}
 
-/* ---------- Sheet ---------- */
-.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:10;opacity:0;pointer-events:none;transition:opacity .25s}
+/* ---------- auth ---------- */
+#auth{min-height:100vh;min-height:100dvh;display:grid;align-content:center;gap:28px;padding-block:32px}
+.fan{position:relative;height:230px;margin:0 auto;width:280px}
+.fan .cover{position:absolute;bottom:40px;left:50%;width:104px;transform-origin:50% 120%;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.fan .cover:nth-child(1){transform:translateX(-50%) rotate(-24deg) translateY(10px)}
+.fan .cover:nth-child(2){transform:translateX(-50%) rotate(-12deg)}
+.fan .cover:nth-child(3){transform:translateX(-50%) rotate(0deg) translateY(-8px)}
+.fan .cover:nth-child(4){transform:translateX(-50%) rotate(12deg)}
+.fan .cover:nth-child(5){transform:translateX(-50%) rotate(24deg) translateY(10px)}
+.auth-copy{text-align:center}
+.auth-copy h1{font-family:var(--serif);font-weight:600;font-size:clamp(30px,8vw,44px);line-height:1.08;letter-spacing:-.02em;margin:0 0 10px;text-wrap:balance}
+.auth-copy p{color:var(--muted);margin:0}
+.auth-card{width:100%;max-width:420px;margin:0 auto;display:grid;gap:12px}
+.auth-card .switch{text-align:center;color:var(--muted);font-size:15px;margin-top:6px}
+.auth-card .switch button{color:var(--accent);font-weight:600}
+
+/* ---------- top bar ---------- */
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:saturate(160%) blur(18px);-webkit-backdrop-filter:saturate(160%) blur(18px);border-bottom:1px solid transparent;transition:border-color .2s}
+.top.scrolled{border-bottom-color:var(--line)}
+.top .wrap{display:flex;align-items:center;gap:12px;height:58px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing:-.01em;margin-right:auto}
+.brand .mark{width:30px;height:30px;border-radius:8px}
+.brand .mark svg{width:17px;height:17px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;display:grid;place-items:center;font-size:15px}
+.add-top{display:none;padding:10px 16px}
+
+/* ---------- hero ---------- */
+.hero{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center;background:var(--surface);border-radius:20px;padding:20px;box-shadow:var(--shadow);margin:8px 0 18px}
+.ring{position:relative;width:96px;height:96px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:9}
+.ring .track{stroke:var(--surface-2)}
+.ring .bar{stroke:var(--accent);stroke-linecap:round;transition:stroke-dashoffset .8s cubic-bezier(.2,.8,.2,1)}
+.ring .num{position:absolute;inset:0;display:grid;place-items:center;text-align:center;line-height:1}
+.ring .num b{font-family:var(--serif);font-size:30px;font-weight:600}
+.ring .num small{display:block;font-size:11px;color:var(--muted);margin-top:3px}
+.hero h2{font-family:var(--serif);font-weight:600;font-size:22px;line-height:1.2;margin:0 0 4px;letter-spacing:-.01em;text-wrap:balance}
+.hero .sub{color:var(--muted);font-size:14px;margin:0}
+.hero .sub button{color:var(--accent);font-weight:600}
+.mini{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);padding-top:14px}
+.mini div{font-size:12px;color:var(--muted);letter-spacing:.02em;text-align:center}
+.mini div + div{border-left:1px solid var(--line)}
+.mini b{display:block;font-family:var(--serif);font-size:22px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+
+/* ---------- controls ---------- */
+.controls{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;margin-bottom:22px}
+.controls .search{grid-column:1/-1}
+@media (min-width:640px){ .controls{grid-template-columns:1fr auto auto} .controls .search{grid-column:auto} }
+.search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 12px;height:44px;color:var(--muted)}
+.search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.search input{flex:1;border:0;background:transparent;outline:none;height:100%;min-width:0}
+.seg{display:flex;background:var(--surface-2);border-radius:11px;padding:3px;height:44px}
+.seg button{display:grid;place-items:center;width:42px;border-radius:9px;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.sort{height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);padding:0 34px 0 12px;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2377746c' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;font-size:15px}
+
+/* ---------- covers ---------- */
+.cover{position:relative;aspect-ratio:2/3;border-radius:4px 8px 8px 4px;overflow:hidden;background:var(--c,#1f5f4f);color:#fff;box-shadow:var(--cover-shadow);isolation:isolate}
+.cover::before{content:"";position:absolute;inset:0 auto 0 0;width:7%;background:linear-gradient(90deg,rgba(0,0,0,.28),rgba(255,255,255,.08) 70%,transparent);z-index:2}
+.cover::after{content:"";position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.18),transparent 40%,rgba(0,0,0,.18));z-index:2;pointer-events:none}
+.cover .gen{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:12% 12% 10% 16%}
+.cover .gen .ct{font-family:var(--serif);font-weight:600;line-height:1.08;font-size:var(--fs,15px);display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden;text-wrap:balance}
+.cover .gen .ca{font-size:calc(var(--fs,15px)*.62);opacity:.82;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cover .gen .rule{height:1px;background:currentColor;opacity:.35;margin:8% 0}
+.cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;opacity:0;transition:opacity .35s}
+.cover img.ok{opacity:1}
+
+/* ---------- shelf grid ---------- */
+.year{display:flex;align-items:baseline;gap:10px;margin:8px 0 14px}
+.year h3{font-family:var(--serif);font-weight:600;font-size:24px;margin:0;letter-spacing:-.01em}
+.year span{color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px 14px;margin-bottom:34px}
+.book{text-align:left;display:flex;flex-direction:column;gap:8px;min-width:0;animation:rise .4s both}
+.book .cover{transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s}
+.book:active .cover{transform:scale(.97)}
+.book .bt{font-weight:600;font-size:14px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.book .ba{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:-6px}
+.stars{color:var(--gold);letter-spacing:1px;font-size:12px;line-height:1}
+.stars i{font-style:normal;color:var(--line)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
+
+/* ---------- list ---------- */
+.list{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;margin-bottom:30px}
+.row{display:grid;grid-template-columns:48px 1fr auto;gap:14px;align-items:center;width:100%;padding:12px 16px;text-align:left}
+.row + .row{border-top:1px solid var(--line)}
+.row .cover{--fs:7px;border-radius:2px 4px 4px 2px}
+.row .rt{font-family:var(--serif);font-weight:600;font-size:17px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .ra{color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.row .rd{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.row .mid{min-width:0}
+
+/* ---------- empty ---------- */
+.empty{text-align:center;padding:48px 20px 80px;color:var(--muted)}
+.empty .stack{display:flex;justify-content:center;gap:6px;margin-bottom:22px}
+.empty .stack span{width:22px;border-radius:3px;background:var(--surface-2)}
+.empty h3{font-family:var(--serif);font-weight:600;color:var(--ink);font-size:24px;margin:0 0 6px}
+.empty p{margin:0 0 20px}
+
+/* ---------- fab ---------- */
+.fab{position:fixed;z-index:15;right:max(20px,env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom));height:56px;padding:0 22px 0 18px;border-radius:28px;background:var(--accent);color:var(--accent-ink);font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.22);transition:transform .15s}
+.fab:active{transform:scale(.95)}
+
+/* ---------- sheets ---------- */
+.backdrop{position:fixed;inset:0;background:rgba(10,10,8,.45);z-index:30;opacity:0;pointer-events:none;transition:opacity .25s}
 .backdrop.open{opacity:1;pointer-events:auto}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:11;background:var(--bg);border-radius:14px 14px 0 0;max-height:92vh;overflow-y:auto;transform:translateY(100%);transition:transform .32s cubic-bezier(.2,.9,.3,1);padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:31;background:var(--bg);border-radius:22px 22px 0 0;max-height:94vh;max-height:94dvh;overflow-y:auto;overscroll-behavior:contain;transform:translateY(105%);transition:transform .34s cubic-bezier(.2,.9,.25,1);padding-bottom:calc(24px + env(safe-area-inset-bottom))}
 .sheet.open{transform:none}
-.sheet .navbar{padding:0 16px;height:52px}
-.sheet .navbar h2{font-size:17px;margin:0;font-weight:600}
-.sheet .navbar .done{font-weight:600}
-.sheet .wrap{padding-top:6px}
-.label{font-size:13px;color:var(--muted);text-transform:uppercase;margin:0 16px 6px;letter-spacing:.3px}
-.stars{display:flex;justify-content:center;gap:8px;background:var(--card);border-radius:12px;padding:12px;margin-bottom:14px}
-.stars button{font-size:32px;color:var(--sep);line-height:1}
-.stars button.on{color:var(--star)}
-.group input[type=date]{-webkit-appearance:none;min-height:50px}
-textarea{resize:none;min-height:110px}
-.del{display:block;width:100%;background:var(--card);border-radius:12px;padding:14px;color:var(--danger);text-align:center;margin-top:10px}
-#splash{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg)}
-#splash .logo{margin:0;animation:pulse 1.2s ease-in-out infinite}
-@keyframes pulse{50%{opacity:.6;transform:scale(.96)}}
-@media (prefers-reduced-motion:reduce){#splash .logo{animation:none}}
-.btn:disabled{opacity:.6}
-.del.confirm{background:var(--danger);color:#fff}
+.sheet .grab{width:38px;height:5px;border-radius:3px;background:var(--line);margin:8px auto 0}
+.sheet-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 18px;height:52px;position:sticky;top:0;background:var(--bg);z-index:2}
+.sheet-bar h2{font-size:16px;font-weight:600;margin:0}
+.sheet-bar .tb{color:var(--accent);font-weight:500;min-width:60px;text-align:left}
+.sheet-bar .tb.r{text-align:right;font-weight:600}
+.sheet-body{padding:6px 18px 0;display:grid;gap:16px}
 
-/* ---------- Adapt to screen size ---------- */
-#auth{max-width:440px}
-.row,.fab,.stars button{transition:background .15s,transform .15s}
+/* detail */
+.detail{display:grid;gap:18px;justify-items:center;text-align:center;padding-top:8px}
+.detail .cover{width:150px;--fs:20px}
+.detail h2{font-family:var(--serif);font-weight:600;font-size:28px;line-height:1.12;margin:0;letter-spacing:-.015em;text-wrap:balance}
+.detail .by{color:var(--muted);margin-top:4px}
+.detail .stars{font-size:22px;letter-spacing:3px}
+.facts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--muted)}
+.notes{width:100%;text-align:left;background:var(--surface);border-radius:var(--r);padding:16px 18px;white-space:pre-wrap;font-family:var(--serif);font-size:17px;line-height:1.55}
+.notes.none{font-family:var(--sans);font-size:14px;color:var(--muted);text-align:center}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+
+/* form */
+.form-top{display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:start}
+.form-top .cover{--fs:12px}
+.form-top .fields{display:grid;gap:10px}
+.rate{display:flex;gap:6px;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 14px}
+.rate button{font-size:30px;line-height:1;color:var(--line);padding:4px;transition:transform .12s,color .12s}
+.rate button.on{color:var(--gold)}
+.rate button:active{transform:scale(1.2)}
+.found{font-size:12px;color:var(--muted);margin:6px 0 0;text-align:center}
+
+/* account */
+.acct{display:grid;gap:4px;justify-items:center;text-align:center;padding:6px 0 4px}
+.acct .avatar{width:64px;height:64px;font-size:26px;margin-bottom:8px}
+.acct b{font-family:var(--serif);font-size:22px;font-weight:600}
+.acct span{color:var(--muted);font-size:14px}
+.goal{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border-radius:var(--r);padding:14px 16px}
+.stepper{display:flex;align-items:center;gap:14px}
+.stepper button{width:36px;height:36px;border-radius:50%;background:var(--surface-2);font-size:20px;line-height:1}
+.stepper output{font-family:var(--serif);font-size:24px;font-weight:600;min-width:36px;text-align:center;font-variant-numeric:tabular-nums}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:40;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- hover ---------- */
 @media (hover:hover){
-  .row:hover{background:var(--field)}
-  .fab:hover{transform:scale(1.06)}
-  .stars button:hover{transform:scale(1.12)}
+  .book:hover .cover{transform:translateY(-4px) rotate(-.6deg);box-shadow:0 14px 30px rgba(0,0,0,.22)}
+  .row:hover{background:var(--surface-2)}
+  .btn:hover{filter:brightness(1.06)}
 }
 
-/* small phones (iPhone SE, mini) */
+/* ---------- sizes ---------- */
 @media (max-width:359px){
-  .big{font-size:30px}
-  .stats{gap:8px}
-  .stat{padding:10px}
-  .stat b{font-size:20px}
-  .stat span{font-size:10px}
-  .date{display:none}
+  .grid{gap:18px 10px}
+  .hero{grid-template-columns:1fr;justify-items:start}
+  .mini{gap:14px}
 }
-
-/* phones in landscape: short screens */
-@media (max-height:500px) and (orientation:landscape){
-  #auth{justify-content:flex-start;padding-top:24px}
-  #auth .logo{width:56px;height:56px;margin-bottom:10px}
-  #auth h1{font-size:28px}
-  .sheet{max-height:100vh;border-radius:0}
-}
-
-/* tablets and up: books become a grid of cards, the sheet becomes a centered dialog */
-@media (min-width:700px){
-  .wrap{max-width:1080px;padding:0 32px}
-  .big{font-size:40px;margin:6px 0 14px}
-  .nav .wrap{display:grid;grid-template-columns:1fr 340px;grid-template-areas:"bar bar" "title search";align-items:center;column-gap:24px}
-  .navbar{grid-area:bar}
-  .big{grid-area:title}
-  .search{grid-area:search;margin:0}
-  .stats{grid-template-columns:repeat(3,minmax(0,220px));gap:14px;margin:14px 0 30px}
-  .stat{padding:16px 18px}
-  .stat b{font-size:30px}
-  .sectionhead{margin-left:4px}
-  .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;background:none;border-radius:0;overflow:visible;margin-bottom:34px}
-  .row{background:var(--card);border-radius:14px;padding:16px}
-  .row + .row{border-top:0}
-  .cover{width:52px;height:72px;font-size:22px}
-  .fab{right:max(32px,env(safe-area-inset-right));bottom:calc(32px + env(safe-area-inset-bottom));width:64px;height:64px}
-
-  .sheet{left:50%;right:auto;top:50%;bottom:auto;width:min(540px,calc(100vw - 48px));max-height:min(760px,calc(100vh - 48px));border-radius:16px;padding-bottom:20px;transform:translate(-50%,-46%) scale(.97);opacity:0;pointer-events:none;transition:transform .25s ease,opacity .2s ease;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid var(--sep)}
+@media (min-width:560px){ .grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
+@media (min-width:760px){
+  .wrap{padding-left:max(32px,env(safe-area-inset-left));padding-right:max(32px,env(safe-area-inset-right))}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:30px 22px}
+  .add-top{display:inline-flex}
+  .fab{display:none}
+  .hero{grid-template-columns:auto 1fr auto;padding:24px 28px;gap:28px}
+  .hero h2{font-size:28px}
+  .mini{grid-column:auto;border-top:0;padding:0;gap:0;min-width:320px}
+  .mini div{padding:4px 18px}
+  .mini b{font-size:28px}
+  .book .bt{font-size:15px}
+  .toast{bottom:32px}
+  /* dialog instead of bottom sheet */
+  .sheet{left:50%;right:auto;top:50%;bottom:auto;width:min(560px,calc(100vw - 48px));max-height:min(820px,calc(100vh - 48px));border-radius:22px;padding-bottom:24px;transform:translate(-50%,-47%) scale(.97);opacity:0;pointer-events:none;transition:transform .25s ease,opacity .2s ease;box-shadow:0 30px 80px rgba(0,0,0,.35);border:1px solid var(--line)}
   .sheet.open{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
-  .sheet .wrap{padding:6px 20px 0}
-}
+  .sheet .grab{display:none}
+  .sheet-body{padding:6px 28px 0}
+  .detail .cover{width:180px}
 
-/* large screens */
-@media (min-width:1200px){
-  .wrap{max-width:1240px}
-  .list{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+  #auth{grid-template-columns:1fr 1fr;align-items:center;max-width:1000px;gap:56px}
+  .auth-side{display:grid;gap:36px}
+  .auth-copy{text-align:left}
+  .fan{margin:0}
+}
+@media (min-width:1100px){ .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))} }
+@media (max-height:520px) and (orientation:landscape){
+  .fan{display:none}
+  #auth{align-content:start}
 }
 @media (prefers-reduced-motion:reduce){
-  .sheet,.backdrop,.row,.fab{transition:none}
+  *,*::before,*::after{animation:none!important;transition:none!important}
 }
 </style>
 </head>
 <body>
 
-<!-- ============ LOGIN ============ -->
-<div id="splash"><div class="logo"><svg viewBox="0 0 24 24" fill="#fff"><path d="M3 4.5h6.5c1.4 0 2.5 1.1 2.5 2.5v13c0-1-.8-1.8-1.8-1.8H3zM21 4.5h-6.5C13.1 4.5 12 5.6 12 7v13c0-1 .8-1.8 1.8-1.8H21z"/></svg></div></div>
+<div id="splash"><div class="mark"><svg viewBox="0 0 24 24"><path d="M3 4.5h6.5c1.4 0 2.5 1.1 2.5 2.5v13c0-1-.8-1.8-1.8-1.8H3zM21 4.5h-6.5C13.1 4.5 12 5.6 12 7v13c0-1 .8-1.8 1.8-1.8H21z"/></svg></div></div>
 
+<!-- ============ AUTH ============ -->
 <section id="auth" class="wrap hidden">
-  <div class="logo"><svg viewBox="0 0 24 24" fill="#fff"><path d="M3 4.5h6.5c1.4 0 2.5 1.1 2.5 2.5v13c0-1-.8-1.8-1.8-1.8H3zM21 4.5h-6.5C13.1 4.5 12 5.6 12 7v13c0-1 .8-1.8 1.8-1.8H21z"/></svg></div>
-  <h1>Shelf</h1>
-  <p class="sub" id="authSub">Sign in to your reading log</p>
-  <form id="authForm" autocomplete="on">
-    <div class="group">
-      <input id="name" name="name" placeholder="Your name" autocomplete="given-name" class="hidden">
-      <input id="u" name="email" type="email" placeholder="Email" autocapitalize="none" autocorrect="off" autocomplete="username" required>
-      <input id="p" name="password" type="password" placeholder="Password" autocomplete="current-password" required>
-      <input id="p2" type="password" placeholder="Confirm password" autocomplete="new-password" class="hidden">
+  <div class="auth-side">
+    <div class="fan" id="fan" aria-hidden="true"></div>
+    <div class="auth-copy">
+      <h1>Every book you've finished, in one place.</h1>
+      <p id="authSub">Sign in to your reading log.</p>
     </div>
-    <p class="err" id="authErr"></p>
-    <button class="btn" id="authBtn" type="submit">Sign In</button>
+  </div>
+  <form class="auth-card" id="authForm" autocomplete="on">
+    <div id="nameWrap" class="hidden"><label class="lbl" for="name">Name</label><input class="field" id="name" name="name" autocomplete="given-name"></div>
+    <div><label class="lbl" for="u">Email</label><input class="field" id="u" name="email" type="email" autocapitalize="none" autocorrect="off" autocomplete="username" required></div>
+    <div><label class="lbl" for="p">Password</label><input class="field" id="p" name="password" type="password" autocomplete="current-password" required></div>
+    <div id="p2Wrap" class="hidden"><label class="lbl" for="p2">Confirm password</label><input class="field" id="p2" type="password" autocomplete="new-password"></div>
+    <p class="err" id="authErr" role="alert"></p>
+    <button class="btn block" id="authBtn" type="submit">Sign in</button>
+    <p class="switch"><span id="switchText">New to Shelf?</span> <button type="button" id="toggleAuth">Create an account</button></p>
   </form>
-  <button class="link" id="toggleAuth">New here? Create an account</button>
-  <p class="note">Your books sync to your account on every device.</p>
 </section>
 
-<!-- ============ MAIN ============ -->
+<!-- ============ APP ============ -->
 <section id="app" class="hidden">
-  <div class="nav">
+  <header class="top" id="top">
     <div class="wrap">
-      <div class="navbar">
-        <span style="color:var(--muted);font-size:15px" id="hello"></span>
-        <button id="logout">Sign Out</button>
+      <div class="brand"><div class="mark"><svg viewBox="0 0 24 24"><path d="M3 4.5h6.5c1.4 0 2.5 1.1 2.5 2.5v13c0-1-.8-1.8-1.8-1.8H3zM21 4.5h-6.5C13.1 4.5 12 5.6 12 7v13c0-1 .8-1.8 1.8-1.8H21z"/></svg></div>Shelf</div>
+      <button class="btn add-top" id="addTop"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add book</button>
+      <button class="avatar" id="avatarBtn" aria-label="Account"></button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="ring">
+        <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="42"/><circle class="bar" id="ringBar" cx="50" cy="50" r="42" stroke-dasharray="263.9" stroke-dashoffset="263.9"/></svg>
+        <div class="num"><div><b id="yrCount">0</b><small id="yrOf">books</small></div></div>
       </div>
-      <div class="big">My Books</div>
-      <label class="search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="q" type="search" placeholder="Search">
-      </label>
+      <div>
+        <h2 id="heroTitle">Your reading this year</h2>
+        <p class="sub" id="heroSub"></p>
+      </div>
+      <div class="mini">
+        <div><b id="sMonth">0</b>This month</div>
+        <div><b id="sAvg">–</b>Avg rating</div>
+        <div><b id="sTotal">0</b>All time</div>
+      </div>
+    </section>
+
+    <div class="controls">
+      <label class="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Search title, author, notes" aria-label="Search books"></label>
+      <select class="sort" id="sort" aria-label="Sort books">
+        <option value="recent">Recent</option>
+        <option value="rating">Top rated</option>
+        <option value="title">Title A–Z</option>
+        <option value="author">Author</option>
+      </select>
+      <div class="seg" role="group" aria-label="View">
+        <button id="vShelf" class="on" aria-label="Shelf view" aria-pressed="true"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/></svg></button>
+        <button id="vList" aria-label="List view" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
+      </div>
     </div>
-  </div>
-  <div class="wrap">
-    <div class="stats">
-      <div class="stat"><b id="sTotal">0</b><span>Total</span></div>
-      <div class="stat"><b id="sYear">0</b><span id="sYearLbl">This year</span></div>
-      <div class="stat"><b id="sAvg">–</b><span>Avg rating</span></div>
-    </div>
+
     <div id="lists"></div>
-  </div>
-  <button class="fab" id="addBtn" aria-label="Add book">+</button>
+  </main>
+
+  <button class="fab" id="addBtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add book</button>
 </section>
 
-<!-- ============ ADD / EDIT SHEET ============ -->
+<!-- ============ SHEETS ============ -->
 <div class="backdrop" id="backdrop"></div>
-<div class="sheet" id="sheet" role="dialog" aria-modal="true">
-  <div class="navbar">
-    <button id="cancel">Cancel</button>
-    <h2 id="sheetTitle">Add Book</h2>
-    <button class="done" id="save">Save</button>
-  </div>
-  <div class="wrap">
-    <div class="group">
-      <input id="fTitle" placeholder="Title" autocapitalize="words">
-      <input id="fAuthor" placeholder="Author" autocapitalize="words">
+
+<div class="sheet" id="detailSheet" role="dialog" aria-modal="true" aria-label="Book details">
+  <div class="grab"></div>
+  <div class="sheet-bar"><button class="tb" data-close>Close</button><h2></h2><button class="tb r" id="dEdit">Edit</button></div>
+  <div class="sheet-body"><div class="detail" id="detail"></div></div>
+</div>
+
+<div class="sheet" id="formSheet" role="dialog" aria-modal="true" aria-labelledby="formTitle">
+  <div class="grab"></div>
+  <div class="sheet-bar"><button class="tb" data-close>Cancel</button><h2 id="formTitle">Add book</h2><button class="tb r" id="save">Save</button></div>
+  <div class="sheet-body">
+    <div class="form-top">
+      <div><div class="cover" id="fCover"></div><p class="found" id="fFound"></p></div>
+      <div class="fields">
+        <div><label class="lbl" for="fTitle">Title</label><input class="field" id="fTitle" autocapitalize="words" autocomplete="off"></div>
+        <div><label class="lbl" for="fAuthor">Author</label><input class="field" id="fAuthor" autocapitalize="words" autocomplete="off"></div>
+      </div>
     </div>
-    <p class="label">Finished on</p>
-    <div class="group"><input id="fDate" type="date"></div>
-    <p class="label">Rating</p>
-    <div class="stars" id="fStars"></div>
-    <p class="label">Notes</p>
-    <div class="group"><textarea id="fNotes" placeholder="What did you think?"></textarea></div>
-    <p class="err" id="sheetErr"></p>
-    <button class="del hidden" id="del">Delete Book</button>
+    <div><label class="lbl" for="fDate">Finished on</label><input class="field" id="fDate" type="date"></div>
+    <div><span class="lbl">Your rating</span><div class="rate" id="fStars"></div></div>
+    <div><label class="lbl" for="fNotes">Notes</label><textarea class="field" id="fNotes" placeholder="What stayed with you?"></textarea></div>
+    <p class="err" id="sheetErr" role="alert"></p>
+    <button class="btn danger block hidden" id="del">Delete book</button>
   </div>
 </div>
+
+<div class="sheet" id="acctSheet" role="dialog" aria-modal="true" aria-label="Account">
+  <div class="grab"></div>
+  <div class="sheet-bar"><span class="tb"></span><h2>Account</h2><button class="tb r" data-close>Done</button></div>
+  <div class="sheet-body">
+    <div class="acct"><div class="avatar" id="aAvatar"></div><b id="aName"></b><span id="aEmail"></span></div>
+    <div class="goal">
+      <div><b>Yearly goal</b><div style="color:var(--muted);font-size:13px">Books to finish in <span id="goalYear"></span></div></div>
+      <div class="stepper"><button id="gMinus" aria-label="Lower goal">−</button><output id="gVal">12</output><button id="gPlus" aria-label="Raise goal">+</button></div>
+    </div>
+    <button class="btn ghost block" id="logout">Sign out</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <script>
 const $ = id => document.getElementById(id);
 const show = (el, on) => $(el).classList.toggle('hidden', !on);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ls = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch{} }
+};
+const YEAR = String(new Date().getFullYear());
 
 /* ---------- Supabase ---------- */
 const cfg = window.SHELF_CONFIG || {};
 const configured = cfg.SUPABASE_URL && !cfg.SUPABASE_URL.includes('YOUR_') && cfg.SUPABASE_ANON_KEY && !cfg.SUPABASE_ANON_KEY.includes('YOUR_');
 const sb = configured && window.supabase ? window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY) : null;
 
+/* ---------- Covers ---------- */
+const PALETTE = ['#1f5f4f','#7a3b2e','#2d3e6b','#7a5a22','#4a2f5c','#2f5a6b','#55622a','#6b2f45','#3d4a3f','#8a4b1f'];
+const hash = s => [...s].reduce((a,c) => (a*31 + c.charCodeAt(0)) >>> 0, 7);
+const coverKey = (t, a) => (t + '|' + (a || '')).toLowerCase().trim();
+const coverCache = ls.get('shelf.covers', {});
+const pending = new Set(); const queue = []; let active = 0;
+
+function coverHTML(title, author, fs){
+  const key = coverKey(title, author);
+  const url = coverCache[key];
+  return `<div class="cover" data-ck="${esc(key)}" style="--c:${PALETTE[hash(key) % PALETTE.length]}${fs ? `;--fs:${fs}px` : ''}">
+    <div class="gen"><div class="ct">${esc(title || 'Untitled')}</div><div><div class="rule"></div><div class="ca">${esc(author || '')}</div></div></div>
+    ${url ? `<img src="${esc(url)}" alt="" loading="lazy" onload="this.classList.add('ok')" onerror="this.remove()">` : ''}
+  </div>`;
+}
+function wantCover(title, author){
+  const key = coverKey(title, author);
+  if (!title || key in coverCache || pending.has(key)) return;
+  pending.add(key); queue.push([key, title, author]); pump();
+}
+async function pump(){
+  while (active < 3 && queue.length){
+    const [key, title, author] = queue.shift(); active++;
+    lookupCover(title, author).then(url => {
+      coverCache[key] = url; ls.set('shelf.covers', coverCache);
+      if (url) document.querySelectorAll(`[data-ck="${CSS.escape(key)}"]`).forEach(el => addImg(el, url));
+    }).catch(() => {}).finally(() => { pending.delete(key); active--; pump(); });
+  }
+}
+async function lookupCover(title, author){
+  const p = new URLSearchParams({ title, limit: '1', fields: 'cover_i' });
+  if (author) p.set('author', author);
+  const r = await fetch('https://openlibrary.org/search.json?' + p);
+  if (!r.ok) throw new Error('lookup failed');
+  const id = (await r.json()).docs?.[0]?.cover_i;
+  return id ? `https://covers.openlibrary.org/b/id/${id}-M.jpg` : '';
+}
+function addImg(el, url){
+  if (el.querySelector('img')) return;
+  const img = new Image(); img.alt = ''; img.onload = () => img.classList.add('ok'); img.onerror = () => img.remove();
+  img.src = url; el.appendChild(img);
+}
+const starsHTML = n => n ? `<span class="stars" aria-label="${n} of 5 stars">${'★'.repeat(n)}<i>${'★'.repeat(5-n)}</i></span>` : '';
+
 /* ---------- Auth ---------- */
-let signup = false, user = null, books = [];
+let signup = false, user = null, books = [], goal = 12;
+
+$('fan').innerHTML = [['Middlemarch','George Eliot'],['Moby-Dick','Herman Melville'],['Pride and Prejudice','Jane Austen'],['Walden','H. D. Thoreau'],['Dracula','Bram Stoker']]
+  .map(([t,a]) => coverHTML(t, a, 13)).join('');
 
 function setMode(s){
   signup = s;
-  show('name', s); $('name').required = s;
-  show('p2', s); $('p2').required = s;
-  $('authBtn').textContent = s ? 'Create Account' : 'Sign In';
-  $('authSub').textContent = s ? 'Start tracking what you read' : 'Sign in to your reading log';
-  $('toggleAuth').textContent = s ? 'Already have an account? Sign in' : 'New here? Create an account';
+  show('nameWrap', s); show('p2Wrap', s); $('p2').required = s;
+  $('authBtn').textContent = s ? 'Create account' : 'Sign in';
+  $('authSub').textContent = s ? 'Create an account to start your log.' : 'Sign in to your reading log.';
+  $('switchText').textContent = s ? 'Already have an account?' : 'New to Shelf?';
+  $('toggleAuth').textContent = s ? 'Sign in' : 'Create an account';
   $('p').autocomplete = s ? 'new-password' : 'current-password';
   msg('');
 }
@@ -266,121 +465,207 @@ $('toggleAuth').onclick = () => setMode(!signup);
 
 $('authForm').onsubmit = async e => {
   e.preventDefault();
-  if (!sb) return msg('The app isn\'t connected to its database yet. Add your Supabase keys to config.js.');
+  if (!sb) return msg("Shelf isn't connected to its database yet. Add your Supabase keys to config.js.");
   const email = $('u').value.trim(), pw = $('p').value;
-  if (signup && pw.length < 6) return msg('Password must be at least 6 characters.');
-  if (signup && pw !== $('p2').value) return msg("Passwords don't match.");
-  $('authBtn').disabled = true; $('authBtn').textContent = signup ? 'Creating…' : 'Signing in…';
+  if (signup && pw.length < 6) return msg('Use at least 6 characters for your password.');
+  if (signup && pw !== $('p2').value) return msg("The two passwords don't match.");
+  const label = $('authBtn').textContent;
+  $('authBtn').disabled = true; $('authBtn').textContent = signup ? 'Creating account…' : 'Signing in…';
   try {
     if (signup) {
       const { data, error } = await sb.auth.signUp({ email, password: pw, options: { data: { name: $('name').value.trim() } } });
       if (error) throw error;
-      if (!data.session) { setMode(false); $('p').value = ''; return msg('Check your email to confirm your account, then sign in.', true); }
+      if (!data.session) { setMode(false); $('p').value = ''; return msg('Check your email for a confirmation link, then sign in.', true); }
     } else {
       const { error } = await sb.auth.signInWithPassword({ email, password: pw });
       if (error) throw error;
     }
   } catch (err) {
-    msg(/invalid login/i.test(err.message) ? 'Wrong email or password.' : err.message);
+    msg(/invalid login/i.test(err.message) ? 'That email and password don\'t match an account.' : err.message);
   } finally {
-    $('authBtn').disabled = false; $('authBtn').textContent = signup ? 'Create Account' : 'Sign In';
+    $('authBtn').disabled = false; $('authBtn').textContent = signup ? 'Create account' : 'Sign in';
   }
 };
 
-$('logout').onclick = () => sb.auth.signOut();
+const displayName = () => user?.user_metadata?.name || user?.email?.split('@')[0] || '';
 
 function onSession(session){
   show('splash', false);
   if (session?.user) {
-    if (user?.id === session.user.id) return;
+    const same = user?.id === session.user.id;
     user = session.user;
-    $('hello').textContent = 'Hi, ' + (user.user_metadata?.name || user.email.split('@')[0]);
+    goal = +user.user_metadata?.goal || 12;
+    const initial = (displayName()[0] || '?').toUpperCase();
+    $('avatarBtn').textContent = $('aAvatar').textContent = initial;
+    $('aName').textContent = displayName(); $('aEmail').textContent = user.email;
+    if (same) return;
     show('auth', false); show('app', true);
     loadBooks();
   } else {
     user = null; books = [];
-    $('authForm').reset(); setMode(false);
+    closeSheets(); $('authForm').reset(); setMode(false);
     show('app', false); show('auth', true);
   }
 }
 
-/* ---------- Books (synced) ---------- */
+/* ---------- Books ---------- */
 async function loadBooks(){
-  $('lists').innerHTML = '<div class="empty">Loading your books…</div>';
+  if (!books.length) $('lists').innerHTML = '<div class="empty"><p>Loading your shelf…</p></div>';
   const { data, error } = await sb.from('books').select('*').order('finished_on', { ascending: false, nullsFirst: false });
-  if (error) { $('lists').innerHTML = `<div class="empty"><b>Couldn't load your books</b>${esc(error.message)}<br><br><button class="link" onclick="loadBooks()">Try again</button></div>`; return; }
+  if (error) { $('lists').innerHTML = `<div class="empty"><h3>Couldn't load your books</h3><p>${esc(error.message)}</p><button class="btn" onclick="loadBooks()">Try again</button></div>`; return; }
   books = data; render();
 }
 
-const palette = ['#c2410c','#0f766e','#4338ca','#be185d','#15803d','#a16207','#0369a1','#7c3aed'];
-const colorFor = s => palette[[...s].reduce((a,c)=>a+c.charCodeAt(0),0) % palette.length];
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fmt = d => new Date(d + 'T00:00').toLocaleDateString(undefined, { month:'short', day:'numeric' });
+let view = ls.get('shelf.view', 'shelf'), sortBy = ls.get('shelf.sort', 'recent');
+$('sort').value = sortBy;
+function setView(v){
+  view = v; ls.set('shelf.view', v);
+  $('vShelf').classList.toggle('on', v === 'shelf'); $('vShelf').setAttribute('aria-pressed', v === 'shelf');
+  $('vList').classList.toggle('on', v === 'list'); $('vList').setAttribute('aria-pressed', v === 'list');
+  render();
+}
+$('vShelf').onclick = () => setView('shelf');
+$('vList').onclick = () => setView('list');
+$('sort').onchange = e => { sortBy = e.target.value; ls.set('shelf.sort', sortBy); render(); };
+$('q').oninput = () => render();
+
+const fmtDate = (d, opts) => new Date(d + 'T00:00').toLocaleDateString(undefined, opts || { month: 'short', day: 'numeric' });
+const sorters = {
+  recent: (a,b) => (b.finished_on||'').localeCompare(a.finished_on||'') || (b.created_at||'').localeCompare(a.created_at||''),
+  rating: (a,b) => (b.rating||0) - (a.rating||0) || sorters.recent(a,b),
+  title:  (a,b) => a.title.localeCompare(b.title),
+  author: (a,b) => (a.author||'~').localeCompare(b.author||'~') || a.title.localeCompare(b.title),
+};
+
+function renderHero(){
+  const yr = books.filter(b => (b.finished_on||'').startsWith(YEAR));
+  const month = YEAR + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+  const rated = books.filter(b => b.rating);
+  const n = yr.length, pct = Math.min(1, n / goal);
+  $('yrCount').textContent = n;
+  $('yrOf').textContent = 'of ' + goal;
+  $('ringBar').style.strokeDashoffset = (263.9 * (1 - pct)).toFixed(1);
+  $('heroTitle').textContent = n === 0 ? `Your ${YEAR} starts with one book` : n >= goal ? `You hit your ${YEAR} goal` : `${n} book${n>1?'s':''} finished in ${YEAR}`;
+  const left = goal - n;
+  $('heroSub').innerHTML = (n >= goal ? `${n - goal > 0 ? `${n-goal} past` : 'Right on'} your goal of ${goal}. ` : `${left} to go for your goal of ${goal}. `) + '<button id="goalLink">Change goal</button>';
+  $('goalLink').onclick = () => openAccount();
+  $('sMonth').textContent = books.filter(b => (b.finished_on||'').startsWith(month)).length;
+  $('sAvg').textContent = rated.length ? (rated.reduce((s,b)=>s+b.rating,0)/rated.length).toFixed(1) : '–';
+  $('sTotal').textContent = books.length;
+}
+
+function bookCard(b, i){
+  wantCover(b.title, b.author);
+  return `<button class="book" data-id="${b.id}" style="animation-delay:${Math.min(i,12)*25}ms">
+    ${coverHTML(b.title, b.author)}
+    <div class="bt">${esc(b.title)}</div><div class="ba">${esc(b.author || 'Unknown author')}</div>${starsHTML(b.rating)}
+  </button>`;
+}
+function bookRow(b){
+  wantCover(b.title, b.author);
+  return `<button class="row" data-id="${b.id}">
+    ${coverHTML(b.title, b.author)}
+    <div class="mid"><div class="rt">${esc(b.title)}</div><div class="ra">${esc(b.author || 'Unknown author')}</div>${starsHTML(b.rating)}</div>
+    <span class="rd">${b.finished_on ? fmtDate(b.finished_on) : ''}</span>
+  </button>`;
+}
 
 function render(){
-  const all = books;
-  const yr = String(new Date().getFullYear());
-  const rated = all.filter(b => b.rating);
-  $('sTotal').textContent = all.length;
-  $('sYear').textContent = all.filter(b => (b.finished_on||'').startsWith(yr)).length;
-  $('sYearLbl').textContent = 'In ' + yr;
-  $('sAvg').textContent = rated.length ? (rated.reduce((s,b)=>s+b.rating,0)/rated.length).toFixed(1) + '★' : '–';
-
+  renderHero();
+  if (!books.length) {
+    $('lists').innerHTML = `<div class="empty"><div class="stack">${[52,64,46,70,58].map(h=>`<span style="height:${h}px"></span>`).join('')}</div>
+      <h3>Your shelf is empty</h3><p>Add a book when you finish it. Shelf finds the cover for you.</p>
+      <button class="btn" onclick="openForm()"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add your first book</button></div>`;
+    return;
+  }
   const q = $('q').value.trim().toLowerCase();
-  const list = q ? all.filter(b => [b.title, b.author, b.notes].join(' ').toLowerCase().includes(q)) : all;
+  const list = (q ? books.filter(b => [b.title, b.author, b.notes].join(' ').toLowerCase().includes(q)) : books.slice()).sort(sorters[sortBy]);
+  if (!list.length) { $('lists').innerHTML = `<div class="empty"><h3>No matches</h3><p>Nothing on your shelf matches “${esc(q)}”.</p></div>`; return; }
 
-  if (!all.length) { $('lists').innerHTML = '<div class="empty"><b>No books yet</b>Tap + after you finish a book to log it.</div>'; return; }
-  if (!list.length) { $('lists').innerHTML = '<div class="empty">No matches.</div>'; return; }
-
-  const byYear = {};
-  list.forEach(b => (byYear[(b.finished_on||'').slice(0,4) || 'Undated'] ??= []).push(b));
-  $('lists').innerHTML = Object.entries(byYear).map(([y, group]) => `
-    <p class="sectionhead">${y} · ${group.length} book${group.length>1?'s':''}</p>
-    <div class="list">${group.map(b => `
-      <button class="row" data-id="${b.id}">
-        <div class="cover" style="background:${colorFor(b.title)}">${esc(b.title[0]?.toUpperCase()||'?')}</div>
-        <div class="meta">
-          <div class="t">${esc(b.title)}</div>
-          <div class="a">${esc(b.author || 'Unknown author')}</div>
-          ${b.rating ? `<div class="s">${'★'.repeat(b.rating)}</div>` : ''}
-        </div>
-        ${b.finished_on ? `<span class="date">${fmt(b.finished_on)}</span>` : ''}
-      </button>`).join('')}
-    </div>`).join('');
+  let groups = [[q ? 'Results' : null, list]];
+  if (sortBy === 'recent' && !q) {
+    const m = new Map();   // Map keeps insertion order (plain objects sort "2025" before "2026")
+    list.forEach(b => { const y = (b.finished_on||'').slice(0,4) || 'Undated'; if (!m.has(y)) m.set(y, []); m.get(y).push(b); });
+    groups = [...m];
+  }
+  $('lists').innerHTML = groups.map(([label, items]) => `
+    ${label ? `<div class="year"><h3>${label}</h3><span>${items.length} book${items.length>1?'s':''}</span></div>` : ''}
+    ${view === 'shelf' ? `<div class="grid">${items.map(bookCard).join('')}</div>` : `<div class="list">${items.map(bookRow).join('')}</div>`}
+  `).join('');
 }
-$('q').oninput = render;
-$('lists').onclick = e => { const r = e.target.closest('.row'); if (r) openSheet(r.dataset.id); };
+$('lists').onclick = e => { const b = e.target.closest('[data-id]'); if (b) openDetail(b.dataset.id); };
 
-/* ---------- Sheet ---------- */
-let editing = null, rating = 0, busy = false;
-$('fStars').innerHTML = [1,2,3,4,5].map(n => `<button data-n="${n}" aria-label="${n} stars">★</button>`).join('');
+/* ---------- Sheets ---------- */
+let openId = null;
+function openSheet(id){
+  document.querySelectorAll('.sheet.open').forEach(s => s.classList.remove('open'));
+  $(id).classList.add('open'); $('backdrop').classList.add('open'); $(id).scrollTop = 0;
+  openId = id;
+}
+function closeSheets(){
+  document.querySelectorAll('.sheet.open').forEach(s => s.classList.remove('open'));
+  $('backdrop').classList.remove('open'); openId = null;
+  if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
+}
+$('backdrop').onclick = closeSheets;
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeSheets);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && openId) closeSheets(); });
+
+let current = null;
+function openDetail(id){
+  const b = books.find(x => x.id === id); if (!b) return;
+  current = b;
+  $('detail').innerHTML = `
+    ${coverHTML(b.title, b.author, 20)}
+    <div><h2>${esc(b.title)}</h2><div class="by">${b.author ? 'by ' + esc(b.author) : 'Unknown author'}</div></div>
+    ${b.rating ? starsHTML(b.rating) : '<span class="chip">Not rated</span>'}
+    <div class="facts">${b.finished_on ? `<span class="chip">Finished ${fmtDate(b.finished_on, { month:'long', day:'numeric', year:'numeric' })}</span>` : ''}</div>
+    <div class="notes ${b.notes ? '' : 'none'}">${b.notes ? esc(b.notes) : 'No notes yet. Tap Edit to add some.'}</div>`;
+  openSheet('detailSheet');
+}
+$('dEdit').onclick = () => openForm(current?.id);
+
+/* form */
+let editing = null, rating = 0, busy = false, lookupTimer = null;
+$('fStars').innerHTML = [1,2,3,4,5].map(n => `<button type="button" data-n="${n}" aria-label="${n} star${n>1?'s':''}">★</button>`).join('');
 $('fStars').onclick = e => { const n = +e.target.dataset.n; if (n) { rating = rating === n ? 0 : n; paintStars(); } };
 const paintStars = () => [...$('fStars').children].forEach((b,i) => b.classList.toggle('on', i < rating));
 const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
 
-function openSheet(id){
+function previewCover(){
+  const t = $('fTitle').value.trim(), a = $('fAuthor').value.trim();
+  $('fCover').outerHTML = coverHTML(t || 'New book', a, 12).replace('class="cover"', 'class="cover" id="fCover"');
+  const key = coverKey(t, a);
+  $('fFound').textContent = t && coverCache[key] ? 'Cover found' : '';
+  clearTimeout(lookupTimer);
+  if (t && !(key in coverCache)) lookupTimer = setTimeout(async () => {
+    $('fFound').textContent = 'Looking for cover…';
+    try { coverCache[key] = await lookupCover(t, a); ls.set('shelf.covers', coverCache); } catch { coverCache[key] = undefined; }
+    if (coverKey($('fTitle').value.trim(), $('fAuthor').value.trim()) === key) previewCover();
+    if (!coverCache[key]) $('fFound').textContent = '';
+  }, 650);
+}
+$('fTitle').oninput = $('fAuthor').oninput = previewCover;
+
+function openForm(id){
   const b = id ? books.find(x => x.id === id) : null;
   editing = b ? b.id : null;
-  $('sheetTitle').textContent = b ? 'Edit Book' : 'Add Book';
-  $('fTitle').value = b?.title || '';
-  $('fAuthor').value = b?.author || '';
-  $('fDate').value = b?.finished_on || today();
-  $('fNotes').value = b?.notes || '';
+  $('formTitle').textContent = b ? 'Edit book' : 'Add book';
+  $('fTitle').value = b?.title || ''; $('fAuthor').value = b?.author || '';
+  $('fDate').value = b?.finished_on || today(); $('fNotes').value = b?.notes || '';
   rating = b?.rating || 0; paintStars();
-  show('del', !!b); $('del').classList.remove('confirm'); $('del').textContent = 'Delete Book';
+  show('del', !!b); $('del').classList.remove('confirm'); $('del').textContent = 'Delete book';
   $('sheetErr').textContent = '';
-  $('sheet').classList.add('open'); $('backdrop').classList.add('open');
-  if (!b) setTimeout(() => $('fTitle').focus(), 320);
+  previewCover();
+  openSheet('formSheet');
+  if (!b && matchMedia('(hover:hover)').matches) setTimeout(() => $('fTitle').focus(), 280);
 }
-function closeSheet(){ $('sheet').classList.remove('open'); $('backdrop').classList.remove('open'); document.activeElement.blur(); }
-
-$('addBtn').onclick = () => openSheet();
-$('cancel').onclick = $('backdrop').onclick = closeSheet;
+$('addBtn').onclick = $('addTop').onclick = () => openForm();
 
 $('save').onclick = async () => {
   if (busy) return;
   const title = $('fTitle').value.trim();
-  if (!title) { $('fTitle').focus(); $('fTitle').placeholder = 'Title is required'; return; }
+  if (!title) { $('sheetErr').textContent = 'Add a title to save this book.'; $('fTitle').focus(); return; }
   const row = { title, author: $('fAuthor').value.trim(), finished_on: $('fDate').value || null, rating: rating || null, notes: $('fNotes').value.trim() };
   busy = true; $('save').textContent = 'Saving…';
   const { data, error } = editing
@@ -389,8 +674,10 @@ $('save').onclick = async () => {
   busy = false; $('save').textContent = 'Save';
   if (error) { $('sheetErr').textContent = "Couldn't save: " + error.message; return; }
   books = editing ? books.map(b => b.id === editing ? data : b) : [data, ...books];
-  books.sort((a,b) => (b.finished_on||'').localeCompare(a.finished_on||''));
-  closeSheet(); render();
+  const wasEdit = !!editing;
+  render();
+  if (wasEdit) openDetail(data.id); else closeSheets();
+  toast(wasEdit ? 'Changes saved' : `Added “${data.title}”`);
 };
 
 $('del').onclick = async () => {
@@ -398,18 +685,45 @@ $('del').onclick = async () => {
   if (!d.classList.contains('confirm')) { d.classList.add('confirm'); d.textContent = 'Tap again to delete'; return; }
   d.textContent = 'Deleting…';
   const { error } = await sb.from('books').delete().eq('id', editing);
-  if (error) { $('sheetErr').textContent = "Couldn't delete: " + error.message; d.textContent = 'Delete Book'; d.classList.remove('confirm'); return; }
-  books = books.filter(b => b.id !== editing); closeSheet(); render();
+  if (error) { $('sheetErr').textContent = "Couldn't delete: " + error.message; d.textContent = 'Delete book'; d.classList.remove('confirm'); return; }
+  const gone = books.find(b => b.id === editing);
+  books = books.filter(b => b.id !== editing); closeSheets(); render();
+  toast(`Deleted “${gone?.title || 'book'}”`);
 };
+
+/* account + goal */
+let goalTimer = null;
+function openAccount(){ $('gVal').textContent = goal; $('goalYear').textContent = YEAR; openSheet('acctSheet'); }
+$('avatarBtn').onclick = openAccount;
+function setGoal(n){
+  goal = Math.max(1, Math.min(365, n)); $('gVal').textContent = goal; renderHero();
+  clearTimeout(goalTimer);
+  goalTimer = setTimeout(async () => {
+    const { error } = await sb.auth.updateUser({ data: { goal } });
+    toast(error ? "Couldn't save your goal" : `Goal set to ${goal} books`);
+  }, 700);
+}
+$('gMinus').onclick = () => setGoal(goal - 1);
+$('gPlus').onclick = () => setGoal(goal + 1);
+$('logout').onclick = () => sb.auth.signOut();
+
+/* toast */
+let toastTimer = null;
+function toast(text){
+  $('toast').textContent = text; $('toast').classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 2200);
+}
+
+/* header border on scroll */
+addEventListener('scroll', () => $('top').classList.toggle('scrolled', scrollY > 4), { passive: true });
 
 /* ---------- Boot ---------- */
 if (sb) {
   sb.auth.onAuthStateChange((_event, session) => onSession(session));
-  // refresh when the app comes back to the foreground, so books added on another device show up
   document.addEventListener('visibilitychange', () => { if (!document.hidden && user) loadBooks(); });
 } else {
   onSession(null);
-  msg('Not connected yet: add your Supabase keys to config.js.');
+  msg("Shelf isn't connected yet: add your Supabase keys to config.js.");
 }
 </script>
 </body>

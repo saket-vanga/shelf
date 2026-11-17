@@ -4,6 +4,8 @@ A reading log built as an iPhone web app. Sign in, log each book you finish with
 
 - Plain HTML, CSS and JavaScript: no build step
 - Logins and storage by [Supabase](https://supabase.com); each account can only read its own books (row-level security)
+- Book covers are looked up by title and author from [Open Library](https://openlibrary.org)
+- Yearly reading goal saved to your account
 - Add to Home Screen on iPhone for a full-screen app
 
 ## Files
