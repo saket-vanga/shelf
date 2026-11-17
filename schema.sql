@@ -31,3 +31,56 @@ create policy "Delete own books" on public.books for delete using (auth.uid() = 
 alter table public.books add column if not exists pages integer check (pages between 1 and 20000);
 alter table public.books add column if not exists cover_url text check (cover_url is null or cover_url like 'https://covers.openlibrary.org/%');
 notify pgrst, 'reload schema';
+
+-- Added Nov 2026: usernames, so an email is optional.
+-- Accounts without an email get a placeholder login address <username>@shelf.invalid
+-- (the .invalid domain can never receive mail). Safe to run more than once.
+create table if not exists public.profiles (
+  id         uuid primary key references auth.users(id) on delete cascade,
+  username   text unique not null check (username ~ '^[a-z0-9_.]{3,24}$'),
+  created_at timestamptz not null default now()
+);
+alter table public.profiles enable row level security;
+drop policy if exists "Read own profile" on public.profiles;
+create policy "Read own profile" on public.profiles for select using (auth.uid() = id);
+
+-- Save the username when an account is created.
+create or replace function public.handle_new_user() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if new.raw_user_meta_data ->> 'username' is not null then
+    insert into public.profiles (id, username) values (new.id, lower(new.raw_user_meta_data ->> 'username'));
+  end if;
+  return new;
+end $$;
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- Is a username free? (used on the sign-up screen)
+create or replace function public.username_available(name text) returns boolean
+language sql security definer stable set search_path = public as $$
+  select not exists (select 1 from public.profiles where username = lower(name));
+$$;
+
+-- Sign in with a username: returns that account's login email, but only when the password is right,
+-- so nobody can look up someone else's email from their username.
+create or replace function public.login_email(name text, pass text) returns text
+language plpgsql security definer set search_path = public, extensions as $$
+declare e text; h text;
+begin
+  select u.email, u.encrypted_password into e, h
+    from auth.users u join public.profiles p on p.id = u.id
+   where p.username = lower(name);
+  if h is null or extensions.crypt(pass, h) <> h then
+    perform pg_sleep(0.4);   -- slow down password guessing
+    return null;
+  end if;
+  return e;
+end $$;
+
+revoke all on function public.username_available(text) from public;
+revoke all on function public.login_email(text, text) from public;
+grant execute on function public.username_available(text) to anon, authenticated;
+grant execute on function public.login_email(text, text) to anon, authenticated;
+notify pgrst, 'reload schema';

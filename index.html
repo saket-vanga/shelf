@@ -86,6 +86,10 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
 .auth-card{width:100%;max-width:420px;margin:0 auto;display:grid;gap:12px}
 .auth-card .switch{text-align:center;color:var(--muted);font-size:15px;margin-top:6px}
 .auth-card .switch button{color:var(--accent);font-weight:600}
+.lbl .opt{text-transform:none;letter-spacing:0;font-weight:500;opacity:.8;margin-left:4px}
+.forgot{justify-self:end;color:var(--accent);font-size:14px;font-weight:500;margin-top:-4px}
+.why{margin:0;color:var(--muted);font-size:15px;line-height:1.5}
+.why b{color:var(--ink)}
 
 /* ---------- top bar ---------- */
 .top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:saturate(160%) blur(18px);-webkit-backdrop-filter:saturate(160%) blur(18px);border-bottom:1px solid transparent;transition:border-color .2s}
@@ -300,10 +304,11 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
     </div>
   </div>
   <form class="auth-card" id="authForm" autocomplete="on">
-    <div id="nameWrap" class="hidden"><label class="lbl" for="name">Name</label><input class="field" id="name" name="name" autocomplete="given-name"></div>
-    <div><label class="lbl" for="u">Email</label><input class="field" id="u" name="email" type="email" autocapitalize="none" autocorrect="off" autocomplete="username" required></div>
+    <div><label class="lbl" for="u" id="uLbl">Username or email</label><input class="field" id="u" name="username" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" required></div>
+    <div id="emailWrap" class="hidden"><label class="lbl" for="em">Email <span class="opt">optional</span></label><input class="field" id="em" type="email" autocapitalize="none" autocorrect="off" autocomplete="email" placeholder="Lets you reset a forgotten password"></div>
     <div><label class="lbl" for="p">Password</label><input class="field" id="p" name="password" type="password" autocomplete="current-password" required></div>
     <div id="p2Wrap" class="hidden"><label class="lbl" for="p2">Confirm password</label><input class="field" id="p2" type="password" autocomplete="new-password"></div>
+    <button type="button" class="forgot" id="forgot">Forgot password?</button>
     <p class="err" id="authErr" role="alert"></p>
     <button class="btn block" id="authBtn" type="submit">Sign in</button>
     <p class="switch"><span id="switchText">New to Shelf?</span> <button type="button" id="toggleAuth">Create an account</button></p>
@@ -400,7 +405,29 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
       <div><b>Yearly goal</b><div style="color:var(--muted);font-size:13px">Books to finish in <span id="goalYear"></span></div></div>
       <div class="stepper"><button id="gMinus" aria-label="Lower goal">−</button><output id="gVal">12</output><button id="gPlus" aria-label="Raise goal">+</button></div>
     </div>
+    <button class="btn block hidden" id="addEmailBtn">Add an email</button>
+    <button class="btn ghost block" id="changePw">Change password</button>
     <button class="btn ghost block" id="logout">Sign out</button>
+  </div>
+</div>
+
+<div class="sheet" id="emailSheet" role="dialog" aria-modal="true" aria-labelledby="emTitle">
+  <div class="grab"></div>
+  <div class="sheet-bar"><button class="tb" id="emLater">Not now</button><h2 id="emTitle">Add an email</h2><button class="tb r" id="emSave">Save</button></div>
+  <div class="sheet-body">
+    <p class="why">Optional, but useful: <b>if you forget your password, an email is the only way back into your account.</b> Shelf never emails you for anything else.</p>
+    <div><label class="lbl" for="emNew">Email</label><input class="field" id="emNew" type="email" autocapitalize="none" autocorrect="off" autocomplete="email"></div>
+    <p class="err" id="emErr" role="alert"></p>
+  </div>
+</div>
+
+<div class="sheet" id="pwSheet" role="dialog" aria-modal="true" aria-labelledby="pwTitle">
+  <div class="grab"></div>
+  <div class="sheet-bar"><button class="tb" data-close>Cancel</button><h2 id="pwTitle">New password</h2><button class="tb r" id="pwSave">Save</button></div>
+  <div class="sheet-body">
+    <div><label class="lbl" for="pwNew">New password</label><input class="field" id="pwNew" type="password" autocomplete="new-password"></div>
+    <div><label class="lbl" for="pwNew2">Confirm new password</label><input class="field" id="pwNew2" type="password" autocomplete="new-password"></div>
+    <p class="err" id="pwErr" role="alert"></p>
   </div>
 </div>
 
@@ -484,9 +511,16 @@ let signup = false, user = null, books = [], goal = 12;
 $('fan').innerHTML = [['Middlemarch','George Eliot'],['Moby-Dick','Herman Melville'],['Pride and Prejudice','Jane Austen'],['Walden','H. D. Thoreau'],['Dracula','Bram Stoker']]
   .map(([t,a]) => coverHTML(t, a, 13)).join('');
 
+const NOEMAIL = '@shelf.invalid';   // placeholder login address for accounts without an email (.invalid never receives mail)
+const hasEmail = u => !!u?.email && !u.email.endsWith(NOEMAIL);
+const usernameOf = u => u?.user_metadata?.username || '';
+const USERNAME_RE = /^[a-z0-9_.]{3,24}$/;
+const needsDbUpdate = err => /function|schema cache|does not exist/i.test(err?.message || '');
+
 function setMode(s){
   signup = s;
-  show('nameWrap', s); show('p2Wrap', s); $('p2').required = s;
+  show('emailWrap', s); show('p2Wrap', s); show('forgot', !s); $('p2').required = s;
+  $('uLbl').textContent = s ? 'Username' : 'Username or email';
   $('authBtn').textContent = s ? 'Create account' : 'Sign in';
   $('authSub').textContent = s ? 'Create an account to start your log.' : 'Sign in to your reading log.';
   $('switchText').textContent = s ? 'Already have an account?' : 'New to Shelf?';
@@ -500,28 +534,48 @@ $('toggleAuth').onclick = () => setMode(!signup);
 $('authForm').onsubmit = async e => {
   e.preventDefault();
   if (!sb) return msg("Shelf isn't connected to its database yet. Add your Supabase keys to config.js.");
-  const email = $('u').value.trim(), pw = $('p').value;
-  if (signup && pw.length < 6) return msg('Use at least 6 characters for your password.');
-  if (signup && pw !== $('p2').value) return msg("The two passwords don't match.");
-  const label = $('authBtn').textContent;
+  const id = $('u').value.trim(), pw = $('p').value;
+  const username = id.toLowerCase(), realEmail = $('em').value.trim();
+  if (signup) {
+    if (id.includes('@')) return msg('Pick a username here. You can add your email in the box below.');
+    if (!USERNAME_RE.test(username)) return msg('Usernames are 3–24 characters: letters, numbers, dots and underscores.');
+    if (pw.length < 6) return msg('Use at least 6 characters for your password.');
+    if (pw !== $('p2').value) return msg("The two passwords don't match.");
+  }
   $('authBtn').disabled = true; $('authBtn').textContent = signup ? 'Creating account…' : 'Signing in…';
   try {
     if (signup) {
-      const { data, error } = await sb.auth.signUp({ email, password: pw, options: { data: { name: $('name').value.trim() } } });
+      const { data: free, error: e1 } = await sb.rpc('username_available', { name: username });
+      if (e1) throw e1;
+      if (!free) return msg('That username is taken. Try another one.');
+      const { data, error } = await sb.auth.signUp({ email: realEmail || username + NOEMAIL, password: pw, options: { data: { name: username, username } } });
       if (error) throw error;
-      if (!data.session) { setMode(false); $('p').value = ''; return msg('Check your email for a confirmation link, then sign in.', true); }
+      if (!data.session) {
+        setMode(false); $('u').value = username; $('p').value = '';
+        return msg(realEmail ? 'Check your email for a confirmation link, then sign in.' : 'Account created, but this database still asks for email confirmation. Turn off "Confirm email" in Supabase so accounts without an email can sign in.', true);
+      }
     } else {
+      let email = id;
+      if (!id.includes('@')) {
+        const { data, error } = await sb.rpc('login_email', { name: username, pass: pw });
+        if (error) throw error;
+        if (!data) return msg("That username and password don't match an account.");
+        email = data;
+      }
       const { error } = await sb.auth.signInWithPassword({ email, password: pw });
       if (error) throw error;
     }
   } catch (err) {
-    msg(/invalid login/i.test(err.message) ? 'That email and password don\'t match an account.' : err.message);
+    msg(needsDbUpdate(err) ? 'Usernames need a database update first. Sign in with your email for now.'
+      : /invalid login/i.test(err.message) ? "That email and password don't match an account."
+      : /not confirmed/i.test(err.message) ? 'Confirm your email first: check your inbox for the link.'
+      : err.message);
   } finally {
     $('authBtn').disabled = false; $('authBtn').textContent = signup ? 'Create account' : 'Sign in';
   }
 };
 
-const displayName = () => user?.user_metadata?.name || user?.email?.split('@')[0] || '';
+const displayName = () => user?.user_metadata?.name || usernameOf(user) || user?.email?.split('@')[0] || '';
 
 function onSession(session){
   show('splash', false);
@@ -531,10 +585,13 @@ function onSession(session){
     goal = +user.user_metadata?.goal || 12;
     const initial = (displayName()[0] || '?').toUpperCase();
     $('avatarBtn').textContent = $('aAvatar').textContent = initial;
-    $('aName').textContent = displayName(); $('aEmail').textContent = user.email;
+    $('aName').textContent = displayName();
+    $('aEmail').textContent = [usernameOf(user) && '@' + usernameOf(user), hasEmail(user) ? user.email : 'No email added'].filter(Boolean).join(' · ');
+    show('addEmailBtn', !hasEmail(user));
     if (same) return;
     show('auth', false); show('app', true);
     loadBooks();
+    maybeAskForEmail();
   } else {
     user = null; books = [];
     closeSheets(); $('authForm').reset(); setMode(false);
@@ -830,6 +887,52 @@ $('gMinus').onclick = () => setGoal(goal - 1);
 $('gPlus').onclick = () => setGoal(goal + 1);
 $('logout').onclick = () => sb.auth.signOut();
 
+/* optional email: ask accounts without one, at most once a week */
+const askKey = () => 'shelf.emailAsked.' + user?.id;
+function maybeAskForEmail(){
+  if (!user || hasEmail(user)) return;
+  const last = ls.get(askKey(), 0);
+  if (Date.now() - last < 7 * 864e5) return;
+  setTimeout(() => { if (user && !openId) openEmailSheet(); }, 900);
+}
+function openEmailSheet(){ $('emNew').value = ''; $('emErr').textContent = ''; $('emSave').textContent = 'Save'; openSheet('emailSheet'); }
+$('addEmailBtn').onclick = openEmailSheet;
+$('emLater').onclick = () => { ls.set(askKey(), Date.now()); closeSheets(); };
+$('emSave').onclick = async () => {
+  const e = $('emNew').value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { $('emErr').textContent = 'Enter a full email address, like name@example.com.'; return; }
+  $('emSave').textContent = 'Saving…';
+  const { data, error } = await sb.auth.updateUser({ email: e }, { emailRedirectTo: location.origin + location.pathname });
+  $('emSave').textContent = 'Save';
+  if (error) { $('emErr').textContent = /already|registered|exists/i.test(error.message) ? 'That email is already used by another account.' : error.message; return; }
+  ls.set(askKey(), Date.now());
+  closeSheets();
+  if (data.user?.new_email) toast('Check your inbox to confirm your email');
+  else { user = data.user; onSession({ user }); toast('Email added'); }
+};
+
+/* forgot password (needs an email on the account) */
+$('forgot').onclick = async () => {
+  const id = $('u').value.trim();
+  if (!id.includes('@')) return msg('Type the email on your account above, then tap Forgot password. Accounts without an email can\'t be reset.');
+  const { error } = await sb.auth.resetPasswordForEmail(id, { redirectTo: location.origin + location.pathname });
+  msg(error ? error.message : 'If that email has an account, a reset link is on its way.', !error);
+};
+
+/* new password: from the account sheet, or after tapping a reset link */
+function openPwSheet(){ $('pwNew').value = $('pwNew2').value = ''; $('pwErr').textContent = ''; openSheet('pwSheet'); }
+$('changePw').onclick = openPwSheet;
+$('pwSave').onclick = async () => {
+  const a = $('pwNew').value, b = $('pwNew2').value;
+  if (a.length < 6) { $('pwErr').textContent = 'Use at least 6 characters.'; return; }
+  if (a !== b) { $('pwErr').textContent = "The two passwords don't match."; return; }
+  $('pwSave').textContent = 'Saving…';
+  const { error } = await sb.auth.updateUser({ password: a });
+  $('pwSave').textContent = 'Save';
+  if (error) { $('pwErr').textContent = error.message; return; }
+  closeSheets(); toast('Password changed');
+};
+
 /* toast */
 let toastTimer = null;
 function toast(text){
@@ -842,7 +945,10 @@ addEventListener('scroll', () => $('top').classList.toggle('scrolled', scrollY >
 
 /* ---------- Boot ---------- */
 if (sb) {
-  sb.auth.onAuthStateChange((_event, session) => onSession(session));
+  sb.auth.onAuthStateChange((event, session) => {
+    onSession(session);
+    if (event === 'PASSWORD_RECOVERY') setTimeout(openPwSheet, 300);
+  });
   document.addEventListener('visibilitychange', () => { if (!document.hidden && user) loadBooks(); });
 } else {
   onSession(null);
