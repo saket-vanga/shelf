@@ -213,6 +213,8 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
 .rate button:active{transform:scale(1.2)}
 .found{font-size:12px;color:var(--muted);margin:6px 0 0;text-align:center}
 .two{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}
+.check{display:flex;align-items:center;gap:10px;margin:-4px 0 0 2px;font-size:14px;color:var(--muted);cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--accent);margin:0}
 .suggest{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);margin-top:-4px}
 .sg{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:center;width:100%;padding:9px 12px;text-align:left}
 .sg + .sg{border-top:1px solid var(--line)}
@@ -386,9 +388,10 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
     </div>
     <div class="suggest hidden" id="suggest" role="listbox" aria-label="Book suggestions"></div>
     <div class="two">
-      <div><label class="lbl" for="fDate">Finished on</label><input class="field" id="fDate" type="date"></div>
+      <div><label class="lbl" for="fDate" id="fDateLbl">Finished on</label><input class="field" id="fDate" type="date"><select class="field hidden" id="fYear" aria-label="Year finished"></select></div>
       <div><label class="lbl" for="fPages">Pages</label><input class="field" id="fPages" type="number" inputmode="numeric" min="1" max="20000" placeholder="–"></div>
     </div>
+    <label class="check"><input type="checkbox" id="fNoDay"> I don't remember the exact day</label>
     <div><span class="lbl">Your rating</span><div class="rate" id="fStars"></div></div>
     <div><label class="lbl" for="fNotes">Notes</label><textarea class="field" id="fNotes" placeholder="What stayed with you?"></textarea></div>
     <p class="err" id="sheetErr" role="alert"></p>
@@ -620,6 +623,9 @@ $('vList').onclick = () => setView('list');
 $('sort').onchange = e => { sortBy = e.target.value; ls.set('shelf.sort', sortBy); render(); };
 $('q').oninput = () => render();
 
+const yearOnly = b => b.date_known === false && !!b.finished_on;
+const whenShort = b => !b.finished_on ? '' : yearOnly(b) ? b.finished_on.slice(0,4) : fmtDate(b.finished_on);
+const whenLong = b => !b.finished_on ? '' : yearOnly(b) ? 'Read in ' + b.finished_on.slice(0,4) : 'Finished ' + fmtDate(b.finished_on, { month:'long', day:'numeric', year:'numeric' });
 const fmtDate = (d, opts) => new Date(d + 'T00:00').toLocaleDateString(undefined, opts || { month: 'short', day: 'numeric' });
 const sorters = {
   recent: (a,b) => (b.finished_on||'').localeCompare(a.finished_on||'') || (b.created_at||'').localeCompare(a.created_at||''),
@@ -640,7 +646,7 @@ function renderHero(){
   const left = goal - n;
   $('heroSub').innerHTML = (n >= goal ? `${n - goal > 0 ? `${n-goal} past` : 'Right on'} your goal of ${goal}. ` : `${left} to go for your goal of ${goal}. `) + '<button id="goalLink">Change goal</button>';
   $('goalLink').onclick = () => openAccount();
-  $('sMonth').textContent = books.filter(b => (b.finished_on||'').startsWith(month)).length;
+  $('sMonth').textContent = books.filter(b => !yearOnly(b) && (b.finished_on||'').startsWith(month)).length;
   $('sAvg').textContent = rated.length ? (rated.reduce((s,b)=>s+b.rating,0)/rated.length).toFixed(1) : '–';
   $('sTotal').textContent = books.length;
   const counted = books.filter(b => pagesOf(b));
@@ -675,7 +681,7 @@ function bookRow(b){
   return `<button class="row" data-id="${b.id}">
     ${coverHTML(b.title, b.author, 0, coverOf(b))}
     <div class="mid"><div class="rt">${esc(b.title)}</div><div class="ra">${esc(b.author || 'Unknown author')}</div>${starsHTML(b.rating)}</div>
-    <span class="rd">${b.finished_on ? fmtDate(b.finished_on) : ''}${pgSpan(b)}</span>
+    <span class="rd">${whenShort(b)}${pgSpan(b)}</span>
   </button>`;
 }
 
@@ -728,14 +734,14 @@ function openDetail(id){
     ${coverHTML(b.title, b.author, 20, coverOf(b))}
     <div><h2>${esc(b.title)}</h2><div class="by">${b.author ? 'by ' + esc(b.author) : 'Unknown author'}</div></div>
     ${b.rating ? starsHTML(b.rating) : '<span class="chip">Not rated</span>'}
-    <div class="facts">${b.finished_on ? `<span class="chip">Finished ${fmtDate(b.finished_on, { month:'long', day:'numeric', year:'numeric' })}</span>` : ''}${pagesOf(b) ? `<span class="chip">${pgLabel(pagesOf(b))}</span>` : ''}</div>
+    <div class="facts">${b.finished_on ? `<span class="chip">${whenLong(b)}</span>` : ''}${pagesOf(b) ? `<span class="chip">${pgLabel(pagesOf(b))}</span>` : ''}</div>
     <div class="notes ${b.notes ? '' : 'none'}">${b.notes ? esc(b.notes) : 'No notes yet. Tap Edit to add some.'}</div>`;
   openSheet('detailSheet');
 }
 $('dEdit').onclick = () => openForm(current?.id);
 
 /* form */
-let editing = null, rating = 0, busy = false, lookupTimer = null, noMetaCols = false;
+let editing = null, rating = 0, busy = false, lookupTimer = null, noMetaCols = false, noDateCol = false;
 $('fStars').innerHTML = [1,2,3,4,5].map(n => `<button type="button" data-n="${n}" aria-label="${n} star${n>1?'s':''}">★</button>`).join('');
 $('fStars').onclick = e => { const n = +e.target.dataset.n; if (n) { rating = rating === n ? 0 : n; paintStars(); } };
 const paintStars = () => [...$('fStars').children].forEach((b,i) => b.classList.toggle('on', i < rating));
@@ -821,6 +827,7 @@ function openForm(id){
   $('formTitle').textContent = b ? 'Edit book' : 'Add book';
   $('fTitle').value = b?.title || ''; $('fAuthor').value = b?.author || '';
   $('fDate').value = b?.finished_on || today(); $('fNotes').value = b?.notes || '';
+  fillYears(b?.finished_on); $('fNoDay').checked = !!b && yearOnly(b); syncDateMode();
   $('fPages').value = b ? (pagesOf(b) || '') : ''; pagesTouched = !!b?.pages;
   chosenCover = b?.cover_url || null; hideSuggest();
   rating = b?.rating || 0; paintStars();
@@ -830,6 +837,22 @@ function openForm(id){
   openSheet('formSheet');
   if (!b && matchMedia('(hover:hover)').matches) setTimeout(() => $('fTitle').focus(), 280);
 }
+function fillYears(d){
+  const now = new Date().getFullYear(), pick = +(d || today()).slice(0,4);
+  const ys = []; for (let y = now; y >= Math.min(now - 15, pick); y--) ys.push(y);
+  $('fYear').innerHTML = ys.map(y => `<option${y === pick ? ' selected' : ''}>${y}</option>`).join('');
+}
+function syncDateMode(){
+  const noDay = $('fNoDay').checked;
+  show('fDate', !noDay); show('fYear', noDay);
+  $('fDateLbl').textContent = noDay ? 'Year finished' : 'Finished on';
+  $('fDateLbl').htmlFor = noDay ? 'fYear' : 'fDate';
+}
+$('fNoDay').onchange = () => {
+  if ($('fNoDay').checked) fillYears($('fDate').value);
+  else if ($('fDate').value.slice(0,4) !== $('fYear').value) $('fDate').value = $('fYear').value === today().slice(0,4) ? today() : $('fYear').value + '-01-01';
+  syncDateMode();
+};
 $('addBtn').onclick = $('addTop').onclick = () => openForm();
 
 $('save').onclick = async () => {
@@ -838,12 +861,19 @@ $('save').onclick = async () => {
   if (!title) { $('sheetErr').textContent = 'Add a title to save this book.'; $('fTitle').focus(); return; }
   const author = $('fAuthor').value.trim();
   const pages = parseInt($('fPages').value, 10);
-  const row = { title, author, finished_on: $('fDate').value || null, rating: rating || null, notes: $('fNotes').value.trim(),
+  const noDay = $('fNoDay').checked;
+  const row = { title, author, finished_on: noDay ? $('fYear').value + '-01-01' : ($('fDate').value || null), date_known: !noDay, rating: rating || null, notes: $('fNotes').value.trim(),
                 pages: pages > 0 ? Math.min(pages, 20000) : null, cover_url: chosenCover || meta[coverKey(title, author)]?.cover || null };
   busy = true; $('save').textContent = 'Saving…';
   const write = r => editing ? sb.from('books').update(r).eq('id', editing).select().single() : sb.from('books').insert(r).select().single();
   if (noMetaCols) { delete row.pages; delete row.cover_url; }
+  if (noDateCol) delete row.date_known;
   let { data, error } = await write(row);
+  if (error && /date_known/.test(error.message)) {
+    noDateCol = true; delete row.date_known;
+    ({ data, error } = await write(row));
+    if (!error && noDay) setTimeout(() => toast('Saved as 1 January. Run the database update for year-only dates.'), 2300);
+  }
   if (error && /pages|cover_url/.test(error.message)) {
     // database hasn't been updated with the new columns yet: save the rest, keep pages/cover on this device
     noMetaCols = true; delete row.pages; delete row.cover_url;

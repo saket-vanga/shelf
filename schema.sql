@@ -84,3 +84,10 @@ revoke all on function public.login_email(text, text) from public;
 grant execute on function public.username_available(text) to anon, authenticated;
 grant execute on function public.login_email(text, text) to anon, authenticated;
 notify pgrst, 'reload schema';
+
+-- ---------------------------------------------------------------
+-- Year-only dates: for books where the reader remembers the year
+-- but not the day. finished_on holds 1 January of that year.
+-- ---------------------------------------------------------------
+alter table public.books add column if not exists date_known boolean not null default true;
+notify pgrst, 'reload schema';
