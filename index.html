@@ -103,6 +103,65 @@ textarea{resize:none;min-height:110px}
 @media (prefers-reduced-motion:reduce){#splash .logo{animation:none}}
 .btn:disabled{opacity:.6}
 .del.confirm{background:var(--danger);color:#fff}
+
+/* ---------- Adapt to screen size ---------- */
+#auth{max-width:440px}
+.row,.fab,.stars button{transition:background .15s,transform .15s}
+@media (hover:hover){
+  .row:hover{background:var(--field)}
+  .fab:hover{transform:scale(1.06)}
+  .stars button:hover{transform:scale(1.12)}
+}
+
+/* small phones (iPhone SE, mini) */
+@media (max-width:359px){
+  .big{font-size:30px}
+  .stats{gap:8px}
+  .stat{padding:10px}
+  .stat b{font-size:20px}
+  .stat span{font-size:10px}
+  .date{display:none}
+}
+
+/* phones in landscape: short screens */
+@media (max-height:500px) and (orientation:landscape){
+  #auth{justify-content:flex-start;padding-top:24px}
+  #auth .logo{width:56px;height:56px;margin-bottom:10px}
+  #auth h1{font-size:28px}
+  .sheet{max-height:100vh;border-radius:0}
+}
+
+/* tablets and up: books become a grid of cards, the sheet becomes a centered dialog */
+@media (min-width:700px){
+  .wrap{max-width:1080px;padding:0 32px}
+  .big{font-size:40px;margin:6px 0 14px}
+  .nav .wrap{display:grid;grid-template-columns:1fr 340px;grid-template-areas:"bar bar" "title search";align-items:center;column-gap:24px}
+  .navbar{grid-area:bar}
+  .big{grid-area:title}
+  .search{grid-area:search;margin:0}
+  .stats{grid-template-columns:repeat(3,minmax(0,220px));gap:14px;margin:14px 0 30px}
+  .stat{padding:16px 18px}
+  .stat b{font-size:30px}
+  .sectionhead{margin-left:4px}
+  .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;background:none;border-radius:0;overflow:visible;margin-bottom:34px}
+  .row{background:var(--card);border-radius:14px;padding:16px}
+  .row + .row{border-top:0}
+  .cover{width:52px;height:72px;font-size:22px}
+  .fab{right:max(32px,env(safe-area-inset-right));bottom:calc(32px + env(safe-area-inset-bottom));width:64px;height:64px}
+
+  .sheet{left:50%;right:auto;top:50%;bottom:auto;width:min(540px,calc(100vw - 48px));max-height:min(760px,calc(100vh - 48px));border-radius:16px;padding-bottom:20px;transform:translate(-50%,-46%) scale(.97);opacity:0;pointer-events:none;transition:transform .25s ease,opacity .2s ease;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1px solid var(--sep)}
+  .sheet.open{transform:translate(-50%,-50%);opacity:1;pointer-events:auto}
+  .sheet .wrap{padding:6px 20px 0}
+}
+
+/* large screens */
+@media (min-width:1200px){
+  .wrap{max-width:1240px}
+  .list{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+}
+@media (prefers-reduced-motion:reduce){
+  .sheet,.backdrop,.row,.fab{transition:none}
+}
 </style>
 </head>
 <body>
