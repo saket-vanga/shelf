@@ -89,6 +89,15 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
 .lbl .opt{text-transform:none;letter-spacing:0;font-weight:500;opacity:.8;margin-left:4px}
 .forgot{justify-self:end;color:var(--accent);font-size:14px;font-weight:500;margin-top:-4px}
 .why{margin:0;color:var(--muted);font-size:15px;line-height:1.5}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:st}
+.steps li{display:flex;align-items:center;gap:14px;background:var(--surface);border-radius:14px;padding:14px;font-size:15px;line-height:1.4;counter-increment:st}
+.steps li::before{content:counter(st);flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:13px;display:grid;place-items:center}
+.steps .ico{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--surface-2);color:#0a84ff;vertical-align:middle;margin:0 2px}
+.steps .ico svg{width:18px;height:18px}
+.steps small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.install-top{display:flex;align-items:center;gap:14px}
+.install-top img{width:56px;height:56px;border-radius:13px;box-shadow:var(--shadow)}
+.install-top b{font-family:var(--serif);font-size:20px;font-weight:600;display:block}
 .why b{color:var(--ink)}
 
 /* ---------- top bar ---------- */
@@ -409,6 +418,7 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
       <div class="stepper"><button id="gMinus" aria-label="Lower goal">−</button><output id="gVal">12</output><button id="gPlus" aria-label="Raise goal">+</button></div>
     </div>
     <button class="btn block hidden" id="addEmailBtn">Add an email</button>
+    <button class="btn ghost block hidden" id="installBtn">Add Shelf to Home Screen</button>
     <button class="btn ghost block" id="changePw">Change password</button>
     <button class="btn ghost block" id="logout">Sign out</button>
   </div>
@@ -431,6 +441,19 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
     <div><label class="lbl" for="pwNew">New password</label><input class="field" id="pwNew" type="password" autocomplete="new-password"></div>
     <div><label class="lbl" for="pwNew2">Confirm new password</label><input class="field" id="pwNew2" type="password" autocomplete="new-password"></div>
     <p class="err" id="pwErr" role="alert"></p>
+  </div>
+</div>
+
+<div class="sheet" id="installSheet" role="dialog" aria-modal="true" aria-labelledby="inTitle">
+  <div class="grab"></div>
+  <div class="sheet-bar"><button class="tb" id="inLater">Not now</button><h2 id="inTitle">Add to Home Screen</h2><button class="tb r" id="inDone">Got it</button></div>
+  <div class="sheet-body">
+    <div class="install-top"><img src="icon-180.png" alt=""><div><b id="inHead">Put Shelf on your iPhone</b><span class="why">It opens full screen like a real app, with no Safari bars.</span></div></div>
+    <ol class="steps">
+      <li><div>Tap the Share button <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="m7.5 7.5 4.5-4.5 4.5 4.5"/><path d="M8 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-2"/></svg></span> in Safari<small>If you don’t see it, tap ••• at the bottom first</small></div></li>
+      <li><div>Scroll down and tap <b>Add to Home Screen</b> <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div></li>
+      <li><div>Tap <b>Add</b>, then open Shelf from your Home Screen<small>You’ll need to sign in once there</small></div></li>
+    </ol>
   </div>
 </div>
 
@@ -927,6 +950,19 @@ function maybeAskForEmail(){
 }
 function openEmailSheet(){ $('emNew').value = ''; $('emErr').textContent = ''; $('emSave').textContent = 'Save'; openSheet('emailSheet'); }
 $('addEmailBtn').onclick = openEmailSheet;
+
+/* iPhone/iPad Safari, not yet added to the Home Screen: show how, at most every two weeks */
+const ua = navigator.userAgent;
+const isIOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua);
+const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
+const canInstall = isIOS && isSafari && !standalone;
+show('installBtn', canInstall);
+if (!/iPhone|iPod/.test(ua)) $('inHead').textContent = 'Put Shelf on your iPad';
+$('installBtn').onclick = () => openSheet('installSheet');
+$('inLater').onclick = $('inDone').onclick = closeSheets;
+if (canInstall && Date.now() - ls.get('shelf.installAsked', 0) > 14 * 864e5)
+  setTimeout(() => { if (!openId) { ls.set('shelf.installAsked', Date.now()); openSheet('installSheet'); } }, 1200);
 $('emLater').onclick = () => { ls.set(askKey(), Date.now()); closeSheets(); };
 $('emSave').onclick = async () => {
   const e = $('emNew').value.trim();
