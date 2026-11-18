@@ -1,6 +1,6 @@
 {
-  "name": "Shelf",
-  "short_name": "Shelf",
+  "name": "Shelffy",
+  "short_name": "Shelffy",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f4f3ef",

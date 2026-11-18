@@ -1,4 +1,4 @@
-# Shelf
+# Shelffy
 
 A reading log built as an iPhone web app. Sign in, log each book you finish with a rating and notes, and see your books on any device.
 

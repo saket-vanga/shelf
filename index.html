@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Shelf">
+<meta name="apple-mobile-web-app-title" content="Shelffy">
 <meta name="theme-color" content="#f4f3ef" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#11110f" media="(prefers-color-scheme: dark)">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
-<title>Shelf</title>
+<title>Shelffy</title>
 <style>
 /* Layout: a personal library. Serif for anything that names a book, sans for the interface.
    Covers carry the color; the chrome stays quiet. */
@@ -107,6 +107,7 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
 .brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing:-.01em;margin-right:auto}
 .brand .mark{width:30px;height:30px;border-radius:8px}
 .brand .mark svg{width:17px;height:17px}
+.auth-brand{margin:18px 0 0;justify-content:center}
 .avatar{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;display:grid;place-items:center;font-size:15px}
 .add-top{display:none;padding:10px 16px}
 
@@ -308,6 +309,7 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
 <!-- ============ AUTH ============ -->
 <section id="auth" class="wrap hidden">
   <div class="auth-side">
+    <div class="brand auth-brand"><div class="mark"><svg viewBox="0 0 24 24"><path d="M3 4.5h6.5c1.4 0 2.5 1.1 2.5 2.5v13c0-1-.8-1.8-1.8-1.8H3zM21 4.5h-6.5C13.1 4.5 12 5.6 12 7v13c0-1 .8-1.8 1.8-1.8H21z"/></svg></div>Shelffy</div>
     <div class="fan" id="fan" aria-hidden="true"></div>
     <div class="auth-copy">
       <h1>Every book you've finished, in one place.</h1>
@@ -322,7 +324,7 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
     <button type="button" class="forgot" id="forgot">Forgot password?</button>
     <p class="err" id="authErr" role="alert"></p>
     <button class="btn block" id="authBtn" type="submit">Sign in</button>
-    <p class="switch"><span id="switchText">New to Shelf?</span> <button type="button" id="toggleAuth">Create an account</button></p>
+    <p class="switch"><span id="switchText">New to Shelffy?</span> <button type="button" id="toggleAuth">Create an account</button></p>
   </form>
 </section>
 
@@ -330,7 +332,7 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
 <section id="app" class="hidden">
   <header class="top" id="top">
     <div class="wrap">
-      <div class="brand"><div class="mark"><svg viewBox="0 0 24 24"><path d="M3 4.5h6.5c1.4 0 2.5 1.1 2.5 2.5v13c0-1-.8-1.8-1.8-1.8H3zM21 4.5h-6.5C13.1 4.5 12 5.6 12 7v13c0-1 .8-1.8 1.8-1.8H21z"/></svg></div>Shelf</div>
+      <div class="brand"><div class="mark"><svg viewBox="0 0 24 24"><path d="M3 4.5h6.5c1.4 0 2.5 1.1 2.5 2.5v13c0-1-.8-1.8-1.8-1.8H3zM21 4.5h-6.5C13.1 4.5 12 5.6 12 7v13c0-1 .8-1.8 1.8-1.8H21z"/></svg></div>Shelffy</div>
       <button class="btn add-top" id="addTop"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add book</button>
       <button class="avatar" id="avatarBtn" aria-label="Account"></button>
     </div>
@@ -418,7 +420,7 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
       <div class="stepper"><button id="gMinus" aria-label="Lower goal">−</button><output id="gVal">12</output><button id="gPlus" aria-label="Raise goal">+</button></div>
     </div>
     <button class="btn block hidden" id="addEmailBtn">Add an email</button>
-    <button class="btn ghost block hidden" id="installBtn">Add Shelf to Home Screen</button>
+    <button class="btn ghost block hidden" id="installBtn">Add Shelffy to Home Screen</button>
     <button class="btn ghost block" id="changePw">Change password</button>
     <button class="btn ghost block" id="logout">Sign out</button>
   </div>
@@ -428,7 +430,7 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
   <div class="grab"></div>
   <div class="sheet-bar"><button class="tb" id="emLater">Not now</button><h2 id="emTitle">Add an email</h2><button class="tb r" id="emSave">Save</button></div>
   <div class="sheet-body">
-    <p class="why">Optional, but useful: <b>if you forget your password, an email is the only way back into your account.</b> Shelf never emails you for anything else.</p>
+    <p class="why">Optional, but useful: <b>if you forget your password, an email is the only way back into your account.</b> Shelffy never emails you for anything else.</p>
     <div><label class="lbl" for="emNew">Email</label><input class="field" id="emNew" type="email" autocapitalize="none" autocorrect="off" autocomplete="email"></div>
     <p class="err" id="emErr" role="alert"></p>
   </div>
@@ -448,11 +450,11 @@ textarea.field{resize:none;min-height:120px;line-height:1.5}
   <div class="grab"></div>
   <div class="sheet-bar"><button class="tb" id="inLater">Not now</button><h2 id="inTitle">Add to Home Screen</h2><button class="tb r" id="inDone">Got it</button></div>
   <div class="sheet-body">
-    <div class="install-top"><img src="icon-180.png" alt=""><div><b id="inHead">Put Shelf on your iPhone</b><span class="why">It opens full screen like a real app, with no Safari bars.</span></div></div>
+    <div class="install-top"><img src="icon-180.png" alt=""><div><b id="inHead">Put Shelffy on your iPhone</b><span class="why">It opens full screen like a real app, with no Safari bars.</span></div></div>
     <ol class="steps">
       <li><div>Tap the Share button <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="m7.5 7.5 4.5-4.5 4.5 4.5"/><path d="M8 10H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-2"/></svg></span> in Safari<small>If you don’t see it, tap ••• at the bottom first</small></div></li>
       <li><div>Scroll down and tap <b>Add to Home Screen</b> <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/></svg></span></div></li>
-      <li><div>Tap <b>Add</b>, then open Shelf from your Home Screen<small>You’ll need to sign in once there</small></div></li>
+      <li><div>Tap <b>Add</b>, then open Shelffy from your Home Screen<small>You’ll need to sign in once there</small></div></li>
     </ol>
   </div>
 </div>
@@ -549,7 +551,7 @@ function setMode(s){
   $('uLbl').textContent = s ? 'Username' : 'Username or email';
   $('authBtn').textContent = s ? 'Create account' : 'Sign in';
   $('authSub').textContent = s ? 'Create an account to start your log.' : 'Sign in to your reading log.';
-  $('switchText').textContent = s ? 'Already have an account?' : 'New to Shelf?';
+  $('switchText').textContent = s ? 'Already have an account?' : 'New to Shelffy?';
   $('toggleAuth').textContent = s ? 'Sign in' : 'Create an account';
   $('p').autocomplete = s ? 'new-password' : 'current-password';
   msg('');
@@ -559,7 +561,7 @@ $('toggleAuth').onclick = () => setMode(!signup);
 
 $('authForm').onsubmit = async e => {
   e.preventDefault();
-  if (!sb) return msg("Shelf isn't connected to its database yet. Add your Supabase keys to config.js.");
+  if (!sb) return msg("Shelffy isn't connected to its database yet. Add your Supabase keys to config.js.");
   const id = $('u').value.trim(), pw = $('p').value;
   const username = id.toLowerCase(), realEmail = $('em').value.trim();
   if (signup) {
@@ -712,7 +714,7 @@ function render(){
   renderHero();
   if (!books.length) {
     $('lists').innerHTML = `<div class="empty"><div class="stack">${[52,64,46,70,58].map(h=>`<span style="height:${h}px"></span>`).join('')}</div>
-      <h3>Your shelf is empty</h3><p>Add a book when you finish it. Shelf finds the cover for you.</p>
+      <h3>Your shelf is empty</h3><p>Add a book when you finish it. Shelffy finds the cover for you.</p>
       <button class="btn" onclick="openForm()"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add your first book</button></div>`;
     return;
   }
@@ -958,7 +960,7 @@ const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua)
 const standalone = navigator.standalone === true || matchMedia('(display-mode: standalone)').matches;
 const canInstall = isIOS && isSafari && !standalone;
 show('installBtn', canInstall);
-if (!/iPhone|iPod/.test(ua)) $('inHead').textContent = 'Put Shelf on your iPad';
+if (!/iPhone|iPod/.test(ua)) $('inHead').textContent = 'Put Shelffy on your iPad';
 $('installBtn').onclick = () => openSheet('installSheet');
 $('inLater').onclick = $('inDone').onclick = closeSheets;
 if (canInstall && Date.now() - ls.get('shelf.installAsked', 0) > 14 * 864e5)
@@ -1018,7 +1020,7 @@ if (sb) {
   document.addEventListener('visibilitychange', () => { if (!document.hidden && user) loadBooks(); });
 } else {
   onSession(null);
-  msg("Shelf isn't connected yet: add your Supabase keys to config.js.");
+  msg("Shelffy isn't connected yet: add your Supabase keys to config.js.");
 }
 </script>
 </body>
